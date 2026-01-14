@@ -51,11 +51,11 @@ export const generateProductContent = async (input, fileData) => {
         const errorMessage = error.message || "";
 
         if (errorMessage.includes("429")) {
-            throw new Error("Limite de Cota Excedido (429): Você atingiu o limite de requisições gratuitas para o Gemini 2.0. Aguarde alguns minutos ou use uma chave API diferente no Google AI Studio.");
+            throw new Error("Limite de Cota Excedido (429): Você atingiu o limite de requisições gratuitas. Aguarde alguns minutos ou use uma chave API diferente no Google AI Studio.");
         }
 
         if (errorMessage.includes("404")) {
-            throw new Error("Erro 404: O modelo Gemini 2.0 Flash não foi encontrado. Verifique se sua chave API tem acesso a este modelo e se o nome está correto.");
+            throw new Error("Erro 404: O modelo Gemini não foi encontrado ou não está disponível para sua chave. Verifique as permissões de modelo no Google AI Studio.");
         }
 
         if (errorMessage.includes("API key not valid")) {
