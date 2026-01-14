@@ -11,38 +11,49 @@ const ConnectionLine = ({ fromRef, toRef }) => {
     const [path, setPath] = useState('');
 
     const updatePath = () => {
-        if (fromRef.current && toRef.current) {
-            const fromRect = fromRef.current.getBoundingClientRect();
-            const toRect = toRef.current.getBoundingClientRect();
+        try {
+            if (fromRef.current && toRef.current) {
+                const fromRect = fromRef.current.getBoundingClientRect();
+                const toRect = toRef.current.getBoundingClientRect();
 
-            // Calculate center points relative to the container is tricky with absolute, 
-            // but for a fullscreen fixed/absolute, we can use window coordinates providing container is full width
+                // Safety check for unmounted/hidden elements
+                if (fromRect.width === 0 || toRect.width === 0) return;
 
-            // Adjusting to relative coordinates of the canvas container would be ideal, 
-            // but simply updating based on rects works if the SVG is fixed/absolute inset-0
+                // Calculate center points relative to the container is tricky with absolute, 
+                // but for a fullscreen fixed/absolute, we can use window coordinates providing container is full width
 
-            const startX = fromRect.left + fromRect.width / 2;
-            const startY = fromRect.top + fromRect.height / 2;
-            const endX = toRect.left + toRect.width / 2;
-            const endY = toRect.top + toRect.height / 2;
+                // Adjusting to relative coordinates of the canvas container would be ideal, 
+                // but simply updating based on rects works if the SVG is fixed/absolute inset-0
 
-            // Curva de Bezier suave
-            const controlY = startY + (endY - startY) / 2;
+                const startX = fromRect.left + fromRect.width / 2;
+                const startY = fromRect.top + fromRect.height / 2;
+                const endX = toRect.left + toRect.width / 2;
+                const endY = toRect.top + toRect.height / 2;
 
-            // Check for NaN
-            if (!isNaN(startX) && !isNaN(endX)) {
+                // Check for NaN or infinite values
+                if (!Number.isFinite(startX) || !Number.isFinite(endX)) return;
+
+                // Curva de Bezier suave
+                const controlY = startY + (endY - startY) / 2;
+
                 setPath(`M ${startX} ${startY} C ${startX} ${controlY}, ${endX} ${controlY}, ${endX} ${endY}`);
             }
+        } catch (error) {
+            // Silently fail on calc errors to avoid breaking the app
+            console.warn("Connection line calc error:", error);
         }
     };
 
     useEffect(() => {
-        // Initial draw
-        setTimeout(updatePath, 100);
-
+        // Initial draw is no longer needed with immediate interval
         // Loop to update (poor man's FLIP for drag lines without complex context state)
         // Ideally we would lift x/y state, but for a simple visual effect, an interval or event listener is lighter code-wise here
-        const interval = setInterval(updatePath, 16); // ~60fps
+        // Reduced frequency to 30ms (~33fps) to save resources, still visually smooth enough
+        const interval = setInterval(updatePath, 33);
+
+        // requestAnimationFrame frame loop could be used for smoother visuals, 
+        // but interval is safer for preventing infinite recursion if logic is buggy.
+
         window.addEventListener('resize', updatePath);
         return () => {
             clearInterval(interval);
