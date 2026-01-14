@@ -66,29 +66,96 @@ const FlowCanvas = () => {
                     )}
                 </AnimatePresence>
 
+                {/* Neon Connections Layer - Behind everything */}
+                {result && !loading && (
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
+                        <defs>
+                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="4" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                            <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#4f46e5" />
+                                <stop offset="100%" stopColor="#06b6d4" />
+                            </linearGradient>
+                        </defs>
+
+                        {/* Lines from Input (Center Top) to Cards */}
+                        <motion.g
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: { opacity: 1, transition: { duration: 0.5 } }
+                            }}
+                        >
+                            {/* Path to Title (Left Far) */}
+                            <motion.path
+                                d="M 50% 180 C 50% 250, 15% 200, 15% 300"
+                                fill="none" stroke="url(#neonGradient)" strokeWidth="3" strokeLinecap="round"
+                                filter="url(#glow)"
+                                variants={{
+                                    hidden: { pathLength: 0, opacity: 0 },
+                                    visible: { pathLength: 1, opacity: 0.6, transition: { duration: 1.5, ease: "easeInOut" } }
+                                }}
+                            />
+                            {/* Path to Description (Left Near) */}
+                            <motion.path
+                                d="M 50% 180 C 50% 250, 40% 250, 40% 380"
+                                fill="none" stroke="url(#neonGradient)" strokeWidth="3" strokeLinecap="round"
+                                filter="url(#glow)"
+                                variants={{
+                                    hidden: { pathLength: 0, opacity: 0 },
+                                    visible: { pathLength: 1, opacity: 0.6, transition: { duration: 1.2, ease: "easeInOut", delay: 0.2 } }
+                                }}
+                            />
+                            {/* Path to SizeTable (Right Near) */}
+                            <motion.path
+                                d="M 50% 180 C 50% 250, 60% 250, 60% 300"
+                                fill="none" stroke="url(#neonGradient)" strokeWidth="3" strokeLinecap="round"
+                                filter="url(#glow)"
+                                variants={{
+                                    hidden: { pathLength: 0, opacity: 0 },
+                                    visible: { pathLength: 1, opacity: 0.6, transition: { duration: 1.2, ease: "easeInOut", delay: 0.2 } }
+                                }}
+                            />
+                            {/* Path to Extra (Right Far) */}
+                            <motion.path
+                                d="M 50% 180 C 50% 250, 85% 200, 85% 300"
+                                fill="none" stroke="url(#neonGradient)" strokeWidth="3" strokeLinecap="round"
+                                filter="url(#glow)"
+                                variants={{
+                                    hidden: { pathLength: 0, opacity: 0 },
+                                    visible: { pathLength: 1, opacity: 0.6, transition: { duration: 1.5, ease: "easeInOut" } }
+                                }}
+                            />
+                        </motion.g>
+                    </svg>
+                )}
+
                 {/* Results - Draggable "Flow" Layout */}
                 {result && !loading && (
                     <motion.div
                         variants={container}
                         initial="hidden"
                         animate="show"
-                        className="absolute inset-0 top-[250px] pointer-events-none"
+                        className="absolute inset-0 top-[250px] pointer-events-none z-20"
                     >
                         {/* Wrapper for draggable elements (pointer-events-auto re-enabled) */}
                         <div className="relative w-full h-full">
-                            <motion.div variants={item} drag className="absolute left-[5%] top-0 cursor-move pointer-events-auto active:cursor-grabbing">
+                            <motion.div variants={item} drag className="absolute left-[5%] top-0 cursor-move pointer-events-auto active:cursor-grabbing hover:z-50">
                                 <TitleNode data={{ content: result.title }} />
                             </motion.div>
 
-                            <motion.div variants={item} drag className="absolute left-[30%] top-20 cursor-move pointer-events-auto active:cursor-grabbing">
+                            <motion.div variants={item} drag className="absolute left-[30%] top-20 cursor-move pointer-events-auto active:cursor-grabbing hover:z-50">
                                 <DescriptionNode data={{ content: result.description }} />
                             </motion.div>
 
-                            <motion.div variants={item} drag className="absolute right-[30%] top-0 cursor-move pointer-events-auto active:cursor-grabbing">
+                            <motion.div variants={item} drag className="absolute right-[30%] top-0 cursor-move pointer-events-auto active:cursor-grabbing hover:z-50">
                                 <SizeTableNode data={{ content: result.sizeTable }} />
                             </motion.div>
 
-                            <motion.div variants={item} drag className="absolute right-[5%] top-20 cursor-move pointer-events-auto active:cursor-grabbing">
+                            <motion.div variants={item} drag className="absolute right-[5%] top-20 cursor-move pointer-events-auto active:cursor-grabbing hover:z-50">
                                 <ExtraNode data={{ content: result.extraDetails }} />
                             </motion.div>
 
