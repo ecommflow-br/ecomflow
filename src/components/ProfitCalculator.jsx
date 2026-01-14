@@ -31,17 +31,17 @@ export default function ProfitCalculator() {
 
                     <div className="space-y-4">
                         <label className="block">
-                            <span className="text-white/60 text-sm">Custo do Produto (R$)</span>
+                            <span className="text-gray-500 text-sm">Custo do Produto (R$)</span>
                             <input
                                 type="number"
                                 value={cost}
                                 onChange={(e) => setCost(Number(e.target.value))}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1 focus:border-indigo-500 outline-none"
+                                className="w-full bg-black/5 border border-black/10 rounded-xl px-4 py-3 mt-1 focus:border-indigo-500 outline-none text-gray-800"
                             />
                         </label>
 
                         <label className="block">
-                            <span className="text-white/60 text-sm">Margem Desejada (%)</span>
+                            <span className="text-gray-500 text-sm">Margem Desejada (%)</span>
                             <div className="flex items-center gap-4 mt-1">
                                 <input
                                     type="range"
@@ -50,18 +50,18 @@ export default function ProfitCalculator() {
                                     onChange={(e) => setMarkup(Number(e.target.value))}
                                     className="flex-1 accent-indigo-500"
                                 />
-                                <span className="w-12 font-bold">{markup}%</span>
+                                <span className="w-12 font-bold text-gray-800">{markup}%</span>
                             </div>
                         </label>
 
                         <div className="space-y-2">
-                            <span className="text-white/60 text-sm">Plataforma</span>
+                            <span className="text-gray-500 text-sm">Plataforma</span>
                             <div className="grid grid-cols-2 gap-2">
                                 {platforms.map(p => (
                                     <button
                                         key={p.id}
                                         onClick={() => { setPlatform(p); setManualTax(''); }}
-                                        className={`p-3 rounded-xl border transition-all text-sm ${platform.id === p.id && !manualTax ? 'bg-indigo-600 border-indigo-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                                        className={`p-3 rounded-xl border transition-all text-sm ${platform.id === p.id && !manualTax ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-black/5 border-black/10 hover:bg-black/10 text-gray-500'}`}
                                     >
                                         {p.name}
                                     </button>
@@ -70,34 +70,34 @@ export default function ProfitCalculator() {
                         </div>
 
                         <label className="block">
-                            <span className="text-white/60 text-sm">Comissão Manual (%)</span>
+                            <span className="text-gray-500 text-sm">Comissão Manual (%)</span>
                             <input
                                 type="number"
                                 placeholder="Ex: 18"
                                 value={manualTax}
                                 onChange={(e) => setManualTax(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1 focus:border-indigo-500 outline-none"
+                                className="w-full bg-black/5 border border-black/10 rounded-xl px-4 py-3 mt-1 focus:border-indigo-500 outline-none text-gray-800"
                             />
                         </label>
                     </div>
                 </div>
 
                 <div className="space-y-6">
-                    <div className="glass p-8 bg-indigo-600/10 border-indigo-500/20">
-                        <span className="text-white/60 text-sm">Preço de Venda Sugerido</span>
-                        <div className="text-4xl font-bold mt-1 text-indigo-400">R$ {sellPrice.toFixed(2)}</div>
+                    <div className="glass p-8 bg-indigo-50 border-indigo-100">
+                        <span className="text-gray-500 text-sm">Preço de Venda Sugerido</span>
+                        <div className="text-4xl font-bold mt-1 text-indigo-600">R$ {sellPrice.toFixed(2)}</div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="glass p-6">
-                            <span className="text-white/60 text-xs">Lucro Líquido</span>
-                            <div className={`text-xl font-bold mt-1 ${profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            <span className="text-gray-400 text-xs text-center block">Lucro Líquido</span>
+                            <div className={`text-xl font-bold mt-1 text-center ${profit > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                 R$ {profit.toFixed(2)}
                             </div>
                         </div>
                         <div className="glass p-6">
-                            <span className="text-white/60 text-xs">ROI</span>
-                            <div className={`text-xl font-bold mt-1 ${roi > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            <span className="text-gray-400 text-xs text-center block">ROI</span>
+                            <div className={`text-xl font-bold mt-1 text-center ${roi > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                 {roi.toFixed(1)}%
                             </div>
                         </div>
@@ -105,17 +105,17 @@ export default function ProfitCalculator() {
 
                     <div className="glass p-6 space-y-3">
                         <div className="flex justify-between text-sm">
-                            <span className="text-white/40">Tarifa Marketplace</span>
-                            <span>R$ {platformFee.toFixed(2)}</span>
+                            <span className="text-gray-400">Tarifa Marketplace</span>
+                            <span className="text-gray-600">R$ {platformFee.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-white/40">Impostos (Estimado)</span>
-                            <span>R$ {taxes.toFixed(2)}</span>
+                            <span className="text-gray-400">Impostos (Estimado)</span>
+                            <span className="text-gray-600">R$ {taxes.toFixed(2)}</span>
                         </div>
-                        <div className="h-px bg-white/5" />
+                        <div className="h-px bg-black/5" />
                         <div className="flex justify-between font-bold">
-                            <span>Total Deduções</span>
-                            <span className="text-red-400">R$ {(platformFee + taxes).toFixed(2)}</span>
+                            <span className="text-gray-800">Total Deduções</span>
+                            <span className="text-red-500">R$ {(platformFee + taxes).toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
