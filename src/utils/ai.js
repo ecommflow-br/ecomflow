@@ -60,7 +60,8 @@ const generateWithOpenAI = async (apiKey, input, fileData) => {
 
 const generateWithGemini = async (apiKey, input, fileData) => {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // User Discovery: 'gemini-2.5-flash' works with their specific key!
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. Com base na descrição ou imagem fornecida:
