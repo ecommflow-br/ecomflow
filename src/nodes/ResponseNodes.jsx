@@ -6,9 +6,32 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
 
     const copy = () => {
         if (!content) return;
-        navigator.clipboard.writeText(content);
+        // Copy logic simplified to handle objects
+        const textToCopy = typeof content === 'object'
+            ? Object.entries(content).map(([k, v]) => `${k}: ${v}`).join('\n')
+            : content;
+        navigator.clipboard.writeText(textToCopy);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    // Helper to render content safely
+    const renderContent = () => {
+        if (!content) return <span className="text-gray-300 italic">Processando...</span>;
+
+        if (typeof content === 'object') {
+            return (
+                <ul className="list-disc pl-4 space-y-1">
+                    {Object.entries(content).map(([key, value]) => (
+                        <li key={key}>
+                            <strong className="capitalize">{key.replace(/([A-Z])/g, ' $1')}:</strong> {value}
+                        </li>
+                    ))}
+                </ul>
+            );
+        }
+
+        return content;
     };
 
     return (
@@ -29,7 +52,7 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
                 </div>
 
                 <div className="text-sm text-gray-700 leading-relaxed max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
-                    {content || <span className="text-gray-300 italic">Processando...</span>}
+                    {renderContent()}
                 </div>
             </div>
         </div>
