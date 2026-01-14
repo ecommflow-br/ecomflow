@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Percent, Package, DollarSign, ArrowRight } from 'lucide-react';
+import { TrendingUp, Percent, Package, DollarSign, ArrowRight, Calculator } from 'lucide-react';
 
 const platforms = [
     { id: 'shopee', name: 'Shopee', tax: 20, trans: 5 },
