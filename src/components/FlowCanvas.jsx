@@ -26,7 +26,7 @@ const initialNodes = [
     {
         id: 'input-1',
         type: 'input',
-        position: { x: 100, y: 100 },
+        position: { x: 250, y: 150 },
         data: { label: 'Input do Produto' }
     }
 ];
@@ -78,8 +78,11 @@ const FlowCanvas = () => {
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
                 fitView
+                fitViewOptions={{ padding: 0.5 }}
+                minZoom={0.2}
+                maxZoom={1}
             >
-                <Background color="#333" gap={20} />
+                <Background color="#333" gap={20} variant="dots" />
                 <Controls />
             </ReactFlow>
 
@@ -92,12 +95,17 @@ const FlowCanvas = () => {
                 </div>
             )}
 
-            {/* Inject handleGenerate into InputNode */}
-            {nodes.length > 0 && nodes[0].id === 'input-1' && (
-                <div className="hidden">
-                    {nodes[0].data.onGenerate = handleGenerate}
-                </div>
-            )}
+            {/* Ensure callback is passed to initial node */}
+            {React.useEffect(() => {
+                setNodes((nds) =>
+                    nds.map((node) => {
+                        if (node.id === 'input-1') {
+                            node.data = { ...node.data, onGenerate: handleGenerate };
+                        }
+                        return node;
+                    })
+                );
+            }, [handleGenerate])}
         </div>
     );
 };

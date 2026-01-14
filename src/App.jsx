@@ -44,7 +44,7 @@ function App() {
         <Router>
             <div className="w-full h-screen relative bg-[#0a0a0c]">
                 <Navigation />
-                <main className="w-full h-[calc(100vh-6rem)] mt-24">
+                <main className="absolute inset-0 pt-24">
                     <Routes>
                         <Route path="/" element={<FlowCanvas />} />
                         <Route path="/calculator" element={<ProfitCalculator />} />
