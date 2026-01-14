@@ -26,7 +26,7 @@ const initialNodes = [
     {
         id: 'input-1',
         type: 'input',
-        position: { x: 250, y: 150 },
+        position: { x: 0, y: 0 }, // Let fitView handle it
         data: { label: 'Input do Produto' }
     }
 ];
@@ -78,11 +78,13 @@ const FlowCanvas = () => {
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
                 fitView
-                fitViewOptions={{ padding: 0.5 }}
-                minZoom={0.2}
+                fitViewOptions={{ padding: 0.2, includeHiddenNodes: true }}
+                minZoom={0.1}
                 maxZoom={1}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+                preventScrolling={false}
             >
-                <Background color="#333" gap={20} variant="dots" />
+                <Background color="#111" gap={20} variant="dots" />
                 <Controls />
             </ReactFlow>
 

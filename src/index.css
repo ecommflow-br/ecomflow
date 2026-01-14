@@ -10,8 +10,13 @@
 }
 
 body {
-    background: radial-gradient(circle at top left, #1a1a2e 0%, #0a0a0c 100%);
+    background: #0a0a0c;
+    background-image:
+        radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
     margin: 0;
+    overflow: hidden;
 }
 
 .react-flow-wrapper {
@@ -70,6 +75,51 @@ body {
 
 .copy-btn:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.node-glow {
+    position: relative;
+    padding: 2px;
+    background: #0a0a0c;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.node-glow::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg,
+            transparent 0%,
+            #6366f1 25%,
+            #a855f7 50%,
+            #ec4899 75%,
+            transparent 100%);
+    animation: rotate 4s linear infinite;
+    z-index: 0;
+}
+
+.node-inner {
+    position: relative;
+    z-index: 1;
+    background: #111;
+    border-radius: 18px;
+    width: 100%;
+    height: 100%;
 }
 
 ::-webkit-scrollbar {
