@@ -26,7 +26,7 @@ const initialNodes = [
     {
         id: 'input-1',
         type: 'input',
-        position: { x: 50, y: 50 },
+        position: { x: 100, y: 100 },
         data: { label: 'Input do Produto' }
     }
 ];
@@ -93,7 +93,7 @@ const FlowCanvas = () => {
             )}
 
             {/* Inject handleGenerate into InputNode */}
-            {nodes.find(n => n.id === 'input-1') && (
+            {nodes.length > 0 && nodes[0].id === 'input-1' && (
                 <div className="hidden">
                     {nodes[0].data.onGenerate = handleGenerate}
                 </div>
