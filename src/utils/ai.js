@@ -15,37 +15,75 @@ export const generateProductContent = async (input, fileData) => {
     }
 };
 
+// Helper function to sanitise JSON strings
+const cleanJsonString = (str) => {
+    if (!str) return "{}";
+    // Remove Markdown styling (```json ... ```)
+    let clean = str.replace(/```json\s*|\s*```/g, "").trim();
+
+    // Fix common control character issues (newlines inside strings)
+    // This regex looks for newlines that are NOT followed by a control char context
+    // A simple approach is to remove actual newlines if they break the JSON, 
+    // or better, replacing them with \n literals if they are within strings.
+    // For safety, we will just use a robust regex to strip control chars that aren't valid.
+    clean = clean.replace(/[\u0000-\u001F]+/g, (match) => {
+        // Allow valid whitespace like \n, \r, \t if properly escaped, but here we are talking about RAW control codes 
+        // in the string literal which JSON.parse hates.
+        switch (match) {
+            case "\b": return "\\b";
+            case "\f": return "\\f";
+            case "\n": return "\\n";
+            case "\r": return "\\r";
+            case "\t": return "\\t";
+            default: return "";
+        }
+    });
+    return clean;
+};
+
+const parseAIResponse = (rawText) => {
+    try {
+        const cleaned = cleanJsonString(rawText);
+        return JSON.parse(cleaned);
+    } catch (error) {
+        console.error("JSON Parse Error:", error);
+        console.log("Raw Text was:", rawText);
+
+        // Fallback: Try to find the JSON object via brackets if the regex failed
+        try {
+            const match = rawText.match(/\{[\s\S]*\}/);
+            if (match) {
+                return JSON.parse(match[0]);
+            }
+        } catch (e) {
+            // Ultimate failure
+            throw new Error("A IA gerou uma resposta inválida. Tente novamente.");
+        }
+        throw new Error("Falha ao processar o formato JSON da IA.");
+    }
+};
+
 const generateWithOpenAI = async (apiKey, input, fileData) => {
-    const openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true });
+    const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
     const messages = [
         {
             role: "system",
-            content: `Aja como um especialista em e-commerce brasileiro. Gere um JSON (sem markdown) com: title, description (com bullets), sizeTable (sugestão), extraDetails (cuidados/material).`
+            content: "Você é um especialista em E-commerce. Responda APENAS com um JSON válido."
         },
         {
             role: "user",
             content: [
-                { type: "text", text: input || "Descreva este produto para venda." },
-            ],
+                { type: "text", text: `Analise este produto e gere o JSON: ${input}` },
+                fileData ? { type: "image_url", image_url: { url: fileData } } : null
+            ].filter(Boolean)
         }
     ];
-
-    if (fileData) {
-        // OpenAI expects base64 data URL directly
-        messages[1].content.push({
-            type: "image_url",
-            image_url: {
-                url: fileData,
-                detail: "high"
-            }
-        });
-    }
 
     try {
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
-            messages: messages,
+            messages,
             max_tokens: 1000,
             response_format: { type: "json_object" }
         });
@@ -92,7 +130,8 @@ const generateWithGemini = async (apiKey, input, fileData) => {
 
         const response = await result.response;
         const text = response.text();
-        return JSON.parse(text.replace(/```json|```/g, "").trim());
+
+        return parseAIResponse(text);
     } catch (error) {
         console.error("Gemini API Error:", error);
         if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Tente usar a OpenAI nas configurações.");
