@@ -41,6 +41,21 @@ function Navigation() {
 }
 
 function App() {
+    return (
+        <ErrorBoundary>
+            <BrowserRouter>
+                <div className="min-h-screen w-full relative bg-[#f5f5f7]">
+                    <Navigation />
+                    <main className="w-full pt-28 pb-12">
+                        <Routes>
+                            <Route path="/" element={<FlowCanvas />} />
+                            <Route path="/calculator" element={<ProfitCalculator />} />
+                        </Routes>
+                    </main>
+                </div>
+            </BrowserRouter>
+        </ErrorBoundary>
+    );
 }
 
 export default App;
