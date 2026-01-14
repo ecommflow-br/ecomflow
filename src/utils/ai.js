@@ -25,12 +25,16 @@ export const generateProductContent = async (input, fileData) => {
     try {
         let result;
         if (fileData) {
+            // Extract mimeType from data URL (e.g., data:image/png;base64,...)
+            const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
+            const base64Data = fileData.split(',')[1];
+
             result = await model.generateContent([
                 prompt,
                 {
                     inlineData: {
-                        data: fileData.split(',')[1],
-                        mimeType: "image/jpeg"
+                        data: base64Data,
+                        mimeType: mimeType
                     }
                 }
             ]);
@@ -44,7 +48,10 @@ export const generateProductContent = async (input, fileData) => {
     } catch (error) {
         console.error("Gemini API Error Detail:", error);
         if (error.message.includes("404")) {
-            throw new Error("Erro 404: O modelo Gemini 1.5 Flash não foi encontrado. Verifique se sua chave API tem acesso a este modelo no Google AI Studio.");
+            throw new Error("Erro 404: O modelo Gemini 2.0 Flash não foi encontrado. Verifique se sua chave API tem acesso a este modelo e se o nome está correto.");
+        }
+        if (error.message.includes("API key not valid")) {
+            throw new Error("Chave API Inválida: Verifique se a chave inserida nas configurações está correta.");
         }
         throw error;
     }
