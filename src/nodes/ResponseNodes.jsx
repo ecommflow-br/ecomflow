@@ -17,16 +17,16 @@ const BaseResponseNode = ({ title, icon: Icon, color, content, type }) => {
                 <Handle type="target" position={Position.Left} className={`!bg-${color}-500`} />
 
                 <div className="flex items-center justify-between mb-3">
-                    <div className={`flex items-center gap-2 text-${color}-400`}>
+                    <div className={`flex items-center gap-2 text-${color}-600`}>
                         <Icon size={16} />
                         <span className="text-xs font-bold uppercase tracking-widest">{title}</span>
                     </div>
-                    <button onClick={copy} className="text-white/40 hover:text-white transition-colors">
-                        {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    <button onClick={copy} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                     </button>
                 </div>
 
-                <div className="text-sm text-white/80 line-clamp-6 leading-relaxed">
+                <div className="text-sm text-gray-600 line-clamp-6 leading-relaxed">
                     {content}
                 </div>
 

@@ -23,13 +23,13 @@ const InputNode = ({ data }) => {
     return (
         <div className="node-glow w-[340px]">
             <div className="node-inner p-6 shadow-2xl relative">
-                <div className="flex items-center gap-2 mb-4 text-indigo-400">
+                <div className="flex items-center gap-2 mb-4 text-indigo-600">
                     <Sparkles size={18} />
                     <span className="font-bold text-sm tracking-wider uppercase">Criação Instantânea</span>
                 </div>
 
                 <textarea
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-indigo-500 outline-none min-h-[100px] resize-none text-white"
+                    className="w-full bg-black/5 border border-black/10 rounded-xl p-3 text-sm focus:border-indigo-500 outline-none min-h-[100px] resize-none text-gray-800"
                     placeholder="O que vamos vender hoje?"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
@@ -47,11 +47,11 @@ const InputNode = ({ data }) => {
                 <div className="flex gap-2 mt-4">
                     <button
                         onClick={() => setRecording(!recording)}
-                        className={`flex-1 p-3 rounded-xl flex items-center justify-center transition-all ${recording ? 'bg-red-600 animate-pulse' : 'bg-white/5 hover:bg-white/10'}`}
+                        className={`flex-1 p-3 rounded-xl flex items-center justify-center transition-all ${recording ? 'bg-red-600 animate-pulse text-white' : 'bg-black/5 hover:bg-black/10 text-gray-600'}`}
                     >
                         <Mic size={18} />
                     </button>
-                    <label className="flex-1 p-3 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center cursor-pointer transition-all">
+                    <label className="flex-1 p-3 rounded-xl bg-black/5 hover:bg-black/10 flex items-center justify-center cursor-pointer transition-all text-gray-600">
                         <ImageIcon size={18} />
                         <input type="file" className="hidden" accept="image/*" onChange={onImageChange} />
                     </label>

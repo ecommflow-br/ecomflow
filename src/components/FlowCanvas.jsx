@@ -102,12 +102,12 @@ const FlowCanvas = () => {
                 setNodes((nds) =>
                     nds.map((node) => {
                         if (node.id === 'input-1') {
-                            node.data = { ...node.data, onGenerate: handleGenerate };
+                            return { ...node, data: { ...node.data, onGenerate: handleGenerate } };
                         }
                         return node;
                     })
                 );
-            }, [handleGenerate])}
+            }, [handleGenerate, setNodes])}
         </div>
     );
 };
