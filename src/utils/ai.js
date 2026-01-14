@@ -5,6 +5,8 @@ export const generateProductContent = async (input, fileData) => {
     if (!apiKey) throw new Error("API Key não encontrada. Configure nas configurações.");
 
     const genAI = new GoogleGenerativeAI(apiKey);
+
+    // Note: Utilizando gemini-1.5-flash que é multimodal e rápido.
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
@@ -18,23 +20,32 @@ export const generateProductContent = async (input, fileData) => {
     - extraDetails: Informações de cuidados, material ou dicas de uso.
 
     RETORNE APENAS O JSON, SEM FORMATAÇÃO DE MARKDOWN.
-  `;
+    `;
 
-    let result;
-    if (fileData) {
-        result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    data: fileData.split(',')[1],
-                    mimeType: "image/jpeg"
+    try {
+        let result;
+        if (fileData) {
+            result = await model.generateContent([
+                prompt,
+                {
+                    inlineData: {
+                        data: fileData.split(',')[1],
+                        mimeType: "image/jpeg"
+                    }
                 }
-            }
-        ]);
-    } else {
-        result = await model.generateContent(prompt);
-    }
+            ]);
+        } else {
+            result = await model.generateContent(prompt);
+        }
 
-    const response = await result.response;
-    return JSON.parse(response.text().replace(/```json|```/g, ""));
+        const response = await result.response;
+        const text = response.text();
+        return JSON.parse(text.replace(/```json|```/g, "").trim());
+    } catch (error) {
+        console.error("Gemini API Error Detail:", error);
+        if (error.message.includes("404")) {
+            throw new Error("Erro 404: O modelo Gemini 1.5 Flash não foi encontrado. Verifique se sua chave API tem acesso a este modelo no Google AI Studio.");
+        }
+        throw error;
+    }
 };
