@@ -6,8 +6,8 @@ export const generateProductContent = async (input, fileData) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Switch: Voltando para gemini-1.5-flash-latest (Maior cota gratuita disponível e estável)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    // Naming: Usando o nome base 'gemini-1.5-flash' para maior compatibilidade entre contas.
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. Com base na descrição ou imagem fornecida:
