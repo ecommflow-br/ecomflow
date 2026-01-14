@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { X, Key, ShieldCheck } from 'lucide-react';
 
 export default function SettingsModal({ isOpen, onClose }) {
-    const [key, setKey] = useState(localStorage.getItem('gemini_api_key') || '');
+    const [geminiKey, setGeminiKey] = useState(localStorage.getItem('gemini_api_key') || '');
+    const [openAiKey, setOpenAiKey] = useState(localStorage.getItem('openai_api_key') || '');
     const [saved, setSaved] = useState(false);
 
     const save = () => {
-        localStorage.setItem('gemini_api_key', key);
+        if (geminiKey) localStorage.setItem('gemini_api_key', geminiKey);
+        if (openAiKey) localStorage.setItem('openai_api_key', openAiKey);
         setSaved(true);
         setTimeout(() => {
             setSaved(false);
@@ -28,32 +30,49 @@ export default function SettingsModal({ isOpen, onClose }) {
                         <Key className="text-indigo-500" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold">Configurações</h3>
-                        <p className="text-white/40 text-sm">Gerencie suas chaves de API</p>
+                        <h3 className="text-xl font-bold">Configurações de IA</h3>
+                        <p className="text-gray-500 text-sm">Gerencie suas chaves de API</p>
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <label className="block">
-                        <span className="text-sm text-white/60 mb-2 block">Google Gemini API Key</span>
-                        <input
-                            type="password"
-                            value={key}
-                            onChange={(e) => setKey(e.target.value)}
-                            placeholder="Cole sua chave aqui..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none text-sm"
-                        />
-                    </label>
+                <div className="space-y-6">
+                    <div className="space-y-4 pt-4 border-t border-white/5">
+                        <label className="block">
+                            <span className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider">OpenAI API Key (Recomendado)</span>
+                            <input
+                                type="password"
+                                value={openAiKey}
+                                onChange={(e) => setOpenAiKey(e.target.value)}
+                                placeholder="sk-..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none text-sm"
+                            />
+                            <p className="text-[10px] text-gray-500 mt-1">Melhor para imagens e estabilidade (GPT-4o mini).</p>
+                        </label>
+                    </div>
+
+                    <div className="space-y-4">
+                        <label className="block">
+                            <span className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider">Google Gemini API Key</span>
+                            <input
+                                type="password"
+                                value={geminiKey}
+                                onChange={(e) => setGeminiKey(e.target.value)}
+                                placeholder="AIza..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none text-sm"
+                            />
+                            <p className="text-[10px] text-gray-500 mt-1">Opção gratuita (pode ter limites de cota).</p>
+                        </label>
+                    </div>
 
                     <button
                         onClick={save}
-                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 mt-4"
                     >
                         {saved ? <><ShieldCheck size={18} /> Salvo!</> : 'Salvar Alterações'}
                     </button>
 
-                    <p className="text-[10px] text-white/20 text-center">
-                        Sua chave é armazenada localmente no seu navegador e nunca enviada para nossos servidores.
+                    <p className="text-[10px] text-gray-400 text-center">
+                        Suas chaves são armazenadas localmente no seu navegador.
                     </p>
                 </div>
             </div>

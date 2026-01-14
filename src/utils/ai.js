@@ -1,12 +1,65 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
 export const generateProductContent = async (input, fileData) => {
-    const apiKey = localStorage.getItem("gemini_api_key");
-    if (!apiKey) throw new Error("API Key não encontrada. Configure nas configurações.");
+    // Preferência: Verifica OpenAI primeiro
+    const openAiKey = localStorage.getItem("openai_api_key");
+    const geminiKey = localStorage.getItem("gemini_api_key");
 
+    if (openAiKey) {
+        return await generateWithOpenAI(openAiKey, input, fileData);
+    } else if (geminiKey) {
+        return await generateWithGemini(geminiKey, input, fileData);
+    } else {
+        throw new Error("Nenhuma chave de API encontrada. Por favor, configure OpenAI ou Gemini nas configurações.");
+    }
+};
+
+const generateWithOpenAI = async (apiKey, input, fileData) => {
+    const openai = new OpenAI({ apiKey: apiKey, dangerouslyAllowBrowser: true });
+
+    const messages = [
+        {
+            role: "system",
+            content: `Aja como um especialista em e-commerce brasileiro. Gere um JSON (sem markdown) com: title, description (com bullets), sizeTable (sugestão), extraDetails (cuidados/material).`
+        },
+        {
+            role: "user",
+            content: [
+                { type: "text", text: input || "Descreva este produto para venda." },
+            ],
+        }
+    ];
+
+    if (fileData) {
+        // OpenAI expects base64 data URL directly
+        messages[1].content.push({
+            type: "image_url",
+            image_url: {
+                url: fileData,
+                detail: "high"
+            }
+        });
+    }
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: messages,
+            max_tokens: 1000,
+            response_format: { type: "json_object" }
+        });
+
+        const content = response.choices[0].message.content;
+        return JSON.parse(content);
+    } catch (error) {
+        console.error("OpenAI Error:", error);
+        throw new Error("Erro na OpenAI: " + (error.message || "Verifique sua chave e créditos."));
+    }
+};
+
+const generateWithGemini = async (apiKey, input, fileData) => {
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Naming: Usando o nome base 'gemini-1.5-flash' para maior compatibilidade entre contas.
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
@@ -25,18 +78,12 @@ export const generateProductContent = async (input, fileData) => {
     try {
         let result;
         if (fileData) {
-            // Extract mimeType from data URL (e.g., data:image/png;base64,...)
             const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
             const base64Data = fileData.split(',')[1];
 
             result = await model.generateContent([
                 prompt,
-                {
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: mimeType
-                    }
-                }
+                { inlineData: { data: base64Data, mimeType: mimeType } }
             ]);
         } else {
             result = await model.generateContent(prompt);
@@ -46,22 +93,8 @@ export const generateProductContent = async (input, fileData) => {
         const text = response.text();
         return JSON.parse(text.replace(/```json|```/g, "").trim());
     } catch (error) {
-        console.error("Gemini API Error Detail:", error);
-
-        const errorMessage = error.message || "";
-
-        if (errorMessage.includes("429")) {
-            throw new Error("Limite de Cota Excedido (429): Você atingiu o limite de requisições gratuitas. Aguarde alguns minutos ou use uma chave API diferente no Google AI Studio.");
-        }
-
-        if (errorMessage.includes("404")) {
-            throw new Error("Erro 404: O modelo Gemini não foi encontrado ou não está disponível para sua chave. Verifique as permissões de modelo no Google AI Studio.");
-        }
-
-        if (errorMessage.includes("API key not valid")) {
-            throw new Error("Chave API Inválida: Verifique se a chave inserida nas configurações está correta.");
-        }
-
+        console.error("Gemini API Error:", error);
+        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Tente usar a OpenAI nas configurações.");
         throw error;
     }
 };
