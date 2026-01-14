@@ -1,115 +1,113 @@
-import React, { useState, useCallback } from 'react';
-import ReactFlow, {
-    Background,
-    Controls,
-    useNodesState,
-    useEdgesState,
-    addEdge,
-    MarkerType
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+```javascript
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import InputNode from '../nodes/InputNode';
 import { TitleNode, DescriptionNode, SizeTableNode, ExtraNode } from '../nodes/ResponseNodes';
 import CalculatorNode from '../nodes/CalculatorNode';
 import { generateProductContent } from '../utils/ai';
-
-const nodeTypes = {
-    input: InputNode,
-    title: TitleNode,
-    description: DescriptionNode,
-    sizeTable: SizeTableNode,
-    extra: ExtraNode,
-    calculator: CalculatorNode
-};
-
-const initialNodes = [
-    {
-        id: 'input-1',
-        type: 'input',
-        position: { x: 0, y: 0 }, // Let fitView handle it
-        data: { label: 'Input do Produto' }
-    }
-];
+import { Sparkles, ArrowRight } from 'lucide-react';
 
 const FlowCanvas = () => {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
 
-    const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const handleGenerate = async (text, file) => {
+    setLoading(true);
+    try {
+      const content = await generateProductContent(text, file);
+      setResult(content);
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleGenerate = async (text, file) => {
-        setLoading(true);
-        try {
-            const content = await generateProductContent(text, file);
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2 }
+    }
+  };
 
-            const responseNodes = [
-                { id: 'title-1', type: 'title', position: { x: 450, y: 0 }, data: { content: content.title } },
-                { id: 'desc-1', type: 'description', position: { x: 450, y: 150 }, data: { content: content.description } },
-                { id: 'size-1', type: 'sizeTable', position: { x: 450, y: 400 }, data: { content: content.sizeTable } },
-                { id: 'extra-1', type: 'extra', position: { x: 450, y: 550 }, data: { content: content.extraDetails } },
-                { id: 'calc-1', type: 'calculator', position: { x: 850, y: 250 }, data: {} },
-            ];
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
-            const newEdges = [
-                { id: 'e1-2', source: 'input-1', target: 'title-1', animated: true },
-                { id: 'e1-3', source: 'input-1', target: 'desc-1', animated: true },
-                { id: 'e1-4', source: 'input-1', target: 'size-1', animated: true },
-                { id: 'e1-5', source: 'input-1', target: 'extra-1', animated: true },
-                { id: 'e2-6', source: 'title-1', target: 'calc-1', animated: true },
-            ];
+  return (
+    <div className="w-full min-h-full flex flex-col items-center p-4 md:p-8 space-y-12 max-w-7xl mx-auto">
+      {/* Central Input Card */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[400px]"
+      >
+        <InputNode onGenerate={handleGenerate} />
+      </motion.div>
 
-            setNodes([...initialNodes, ...responseNodes]);
-            setEdges(newEdges);
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+      {/* Loading State */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center gap-4 py-12"
+          >
+            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-indigo-600 font-bold animate-pulse">Mineração de Dados Criativos...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-    return (
-        <div className="w-full h-full">
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                nodeTypes={nodeTypes}
-                fitView
-                fitViewOptions={{ padding: 0.2, includeHiddenNodes: true }}
-                minZoom={0.1}
-                maxZoom={1}
-                defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
-                preventScrolling={false}
-            >
-                <Background color="#111" gap={20} variant="dots" />
-                <Controls />
-            </ReactFlow>
+      {/* Results Grid - "The Logic Flow" */}
+      {result && !loading && (
+        <motion.div 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="w-full space-y-12"
+        >
+          {/* Step 1: Content Generation */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+            {/* Visual connector for desktop */}
+            <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-px bg-indigo-100 -z-10" />
+            
+            <motion.div variants={item}><TitleNode data={{ content: result.title }} /></motion.div>
+            <motion.div variants={item}><DescriptionNode data={{ content: result.description }} /></motion.div>
+            <motion.div variants={item}><SizeTableNode data={{ content: result.sizeTable }} /></motion.div>
+            <motion.div variants={item}><ExtraNode data={{ content: result.extraDetails }} /></motion.div>
+          </div>
 
-            {loading && (
-                <div className="absolute inset-0 bg-black/50 z-50 flex items-center justify-center">
-                    <div className="glass px-8 py-4 flex items-center gap-3">
-                        <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent animate-spin rounded-full" />
-                        <span className="font-medium">IA Processando...</span>
-                    </div>
-                </div>
-            )}
+          {/* Step 2: Final Action Row */}
+          <motion.div 
+            variants={item}
+            className="flex flex-col items-center gap-6 pt-12 border-t border-gray-100"
+          >
+            <div className="p-3 bg-emerald-100 rounded-full text-emerald-600 animate-bounce">
+              <ArrowRight size={24} />
+            </div>
+            <CalculatorNode />
+          </motion.div>
+        </motion.div>
+      )}
 
-            {/* Ensure callback is passed to initial node */}
-            {React.useEffect(() => {
-                setNodes((nds) =>
-                    nds.map((node) => {
-                        if (node.id === 'input-1') {
-                            return { ...node, data: { ...node.data, onGenerate: handleGenerate } };
-                        }
-                        return node;
-                    })
-                );
-            }, [handleGenerate, setNodes])}
-        </div>
-    );
+      {/* Placeholder for fresh start */}
+      {!result && !loading && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          className="text-center text-gray-400 max-w-md"
+        >
+          <Sparkles className="mx-auto mb-4 text-indigo-300" size={48} />
+          <p className="text-sm">Descreva seu produto ou suba uma foto para começar o fluxo de criação turbinado por IA.</p>
+        </motion.div>
+      )}
+    </div>
+  );
 };
 
 export default FlowCanvas;
+```

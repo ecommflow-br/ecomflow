@@ -1,36 +1,36 @@
 import React, { useState } from 'react';
-import { Handle, Position } from 'reactflow';
 import { Copy, Check, Tally3, AlignLeft, Table, PlusCircle } from 'lucide-react';
 
-const BaseResponseNode = ({ title, icon: Icon, color, content, type }) => {
+const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
     const [copied, setCopied] = useState(false);
 
     const copy = () => {
+        if (!content) return;
         navigator.clipboard.writeText(content);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
     return (
-        <div className={`node-glow w-[300px]`}>
-            <div className="node-inner p-5 relative">
-                <Handle type="target" position={Position.Left} className={`!bg-${color}-500`} />
-
-                <div className="flex items-center justify-between mb-3">
+        <div className={`node-glow w-[320px] transition-all hover:scale-[1.02]`}>
+            <div className="node-inner p-6 relative">
+                <div className="flex items-center justify-between mb-4">
                     <div className={`flex items-center gap-2 text-${color}-600`}>
-                        <Icon size={16} />
+                        <Icon size={18} />
                         <span className="text-xs font-bold uppercase tracking-widest">{title}</span>
                     </div>
-                    <button onClick={copy} className="text-gray-400 hover:text-gray-600 transition-colors">
-                        {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                    <button
+                        onClick={copy}
+                        className="p-2 hover:bg-black/5 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
+                        title="Copiar"
+                    >
+                        {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
                     </button>
                 </div>
 
-                <div className="text-sm text-gray-600 line-clamp-6 leading-relaxed">
-                    {content}
+                <div className="text-sm text-gray-700 leading-relaxed max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                    {content || <span className="text-gray-300 italic">Processando...</span>}
                 </div>
-
-                <Handle type="source" position={Position.Right} className={`!bg-${color}-500`} />
             </div>
         </div>
     );

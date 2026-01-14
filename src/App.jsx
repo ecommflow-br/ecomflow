@@ -42,9 +42,9 @@ function Navigation() {
 function App() {
     return (
         <Router>
-            <div className="w-full h-screen relative bg-[#0a0a0c]">
+            <div className="min-h-screen w-full relative bg-[#f5f5f7]">
                 <Navigation />
-                <main className="w-screen h-screen pt-24">
+                <main className="w-full pt-28 pb-12">
                     <Routes>
                         <Route path="/" element={<FlowCanvas />} />
                         <Route path="/calculator" element={<ProfitCalculator />} />
