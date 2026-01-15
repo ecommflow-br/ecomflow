@@ -99,7 +99,7 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
     return (
         <div className="node-glow w-[360px]">
             {/* ... (Header unchanged) ... */}
-            <div className="node-inner bg-white overflow-hidden flex flex-col h-[600px] relative">
+            <div className="node-inner bg-white overflow-hidden flex flex-col h-[800px] relative">
                 <div className="p-4 bg-gray-50 border-b border-gray-100 shrink-0 cursor-move group/header relative">
                     <div className="absolute inset-x-0 -top-px h-[2px] bg-indigo-500 opacity-0 group-hover/header:opacity-100 transition-opacity" />
 
