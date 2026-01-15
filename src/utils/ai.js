@@ -19,23 +19,52 @@ const getStylePrompt = (style, input) => {
 
     if (style === 'elite') {
         return `${basePrompt}
-        ESTILO: COPYWRITING DE ALTA CONVERSÃO (ELITE).
-        Estrutura OBRIGATÓRIA (Siga exatamente estes tópicos):
-        1. HOOK (Pergunta/Dor): Comece com uma pergunta que toca numa dor do cliente (ex: "Cansado de roupa que amassa?").
-        2. SOLUÇÃO (Benefício): Apresente o produto como a solução definitiva, focando na qualidade técnica (ex: "Tecido Premium Gramatura 190").
-        3. DETALHES TÉCNICOS: Use termos como "Acabamento Premium", "Zero Transparência", "Ajuste Perfeito".
-        4. BULLETS DE BENEFÍCIOS: Liste 5 benefícios reais de uso.
-        5. PROVA SOCIAL/GARANTIA: Mencione satisfação garantida.
-        6. CHAMADA PARA AÇÃO (CTA): Finalize com urgência.
+        ESTILO: COPYWRITING DE ALTA CONVERSÃO (Foco: Marketplace/Shopee/Mercado Livre).
+        
+        IMPORTANTE: 
+        - NÃO invente nome de loja.
+        - NÃO coloque WhatsApp ou Instagram (Regra de bloqueio do Marketplace).
+        - NÃO coloque links externos.
+        
+        Estrutura OBRIGATÓRIA (Siga este template visual):
+        
+        > **🚚 ENVIO IMEDIATO | 💎 QUALIDADE PREMIUM | 📸 FOTOS REAIS**
+        
+        ## ✨ [TÍTULO PERSUASIVO COM EMOJI]
+        [Parágrafo de Hook: Identifique a dor/desejo e apresente a solução.]
+        
+        ### ❤️ POR QUE VOCÊ VAI AMAR:
+        * **[Benefício 1]:** [Explicação]
+        * **[Benefício 2]:** [Explicação]
+        * **[Benefício 3]:** [Explicação]
+        
+        ---
+        
+        ## ❓ PERGUNTAS FREQUENTES (FAQ)
+        **1. [Pergunta comum sobre o nicho]?**
+        [Resposta quebra-objeção]
+        
+        **2. [Pergunta sobre tamanho/material]?**
+        [Resposta técnica e tranquilizadora]
+        
+        ---
+        
+        ## ✅ DICAS DE CUIDADO
+        * [Dica 1]
+        * [Dica 2]
+        
+        ---
+        
+        🛒 **[Chamada para Ação de Escassez - ex: Estoque Limitado]**
         
         Retorne um JSON (PORTUGUÊS):
         {
-            "title": "Título SEO Matador (com gatilhos)",
-            "description": "O texto completo da copy seguindo a estrutura acima (use quebras de linha e emojis estratégicos)",
+            "title": "Título SEO (Ex: Vestido Midi Duna...)",
+            "description": "O texto completo seguindo EXATAMENTE a estrutura acima com os separadores '---'",
             "sizeTable": "Tabela detalhada",
             "extraDetails": {
-                "observations": "Ficha Técnica (Tecido, Gramatura, Transparência)",
-                "packaging": "Unboxing Experience",
+                "observations": "Ficha Técnica (Tecido, Detalhes)",
+                "packaging": "Conteúdo da embalagem",
                 "shipping": "Envio Imediato"
             }
         }`;
