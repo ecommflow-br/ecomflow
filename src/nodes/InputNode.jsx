@@ -58,22 +58,28 @@ const InputNode = ({ onGenerate }) => {
                 </div>
 
                 {/* Style Selector Buttons */}
-                <div className="flex bg-gray-50 p-1 rounded-xl shadow-inner border border-gray-100 mb-4">
+                <div className="grid grid-cols-2 gap-2 bg-gray-50 p-2 rounded-xl shadow-inner border border-gray-100 mb-4">
+                    <button
+                        onClick={() => setStyle('basic')}
+                        className={`py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'basic' ? 'bg-gray-600 text-white shadow-lg shadow-gray-200' : 'text-gray-400 hover:bg-white hover:text-gray-500'}`}
+                    >
+                        📋 Básico
+                    </button>
                     <button
                         onClick={() => setStyle('marketplace')}
-                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'marketplace' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-400 hover:bg-white hover:text-indigo-500'}`}
+                        className={`py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'marketplace' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-400 hover:bg-white hover:text-indigo-500'}`}
                     >
                         ⚡ Marketplace
                     </button>
                     <button
                         onClick={() => setStyle('boutique')}
-                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'boutique' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'text-gray-400 hover:bg-white hover:text-purple-500'}`}
+                        className={`py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'boutique' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'text-gray-400 hover:bg-white hover:text-purple-500'}`}
                     >
                         💎 Boutique
                     </button>
                     <button
                         onClick={() => setStyle('elite')}
-                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'elite' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-400 hover:bg-white hover:text-emerald-500'}`}
+                        className={`py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'elite' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-400 hover:bg-white hover:text-emerald-500'}`}
                     >
                         🔥 Copy Elite
                     </button>
@@ -121,14 +127,16 @@ const InputNode = ({ onGenerate }) => {
                     <button
                         onClick={handleAction}
                         className={`flex-1 p-3 rounded-xl flex items-center justify-center gap-2 transition-all font-bold text-sm text-white shadow-lg
-                            ${style === 'marketplace' ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20' :
-                                style === 'boutique' ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' :
-                                    'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'}`}
+                            ${style === 'basic' ? 'bg-gray-600 hover:bg-gray-500 shadow-gray-600/20' :
+                                style === 'marketplace' ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20' :
+                                    style === 'boutique' ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' :
+                                        'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'}`}
                     >
                         <Send size={16} />
-                        {style === 'marketplace' ? 'Gerar Anúncio Rápido' :
-                            style === 'boutique' ? 'Gerar Copy Boutique' :
-                                'Gerar Copy de Alta Conversão'}
+                        {style === 'basic' ? 'Gerar Ficha Técnica' :
+                            style === 'marketplace' ? 'Gerar Anúncio Rápido' :
+                                style === 'boutique' ? 'Gerar Copy Boutique' :
+                                    'Gerar Copy de Alta Conversão'}
                     </button>
                 </div>
             </div>

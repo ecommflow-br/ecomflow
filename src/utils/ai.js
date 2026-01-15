@@ -87,6 +87,75 @@ const getStylePrompt = (style, input) => {
                 "shipping": "Prazo"
             }
         }`;
+    } else if (style === 'basic') {
+        return `${basePrompt}
+        ESTILO: TÉCNICO / PADRÃO (Foco: Informativo e Neutro).
+        
+        Estrutura OBRIGATÓRIA (Siga exatamente este template):
+        
+        ## 👗 [Nome do Produto] – Moda Casual & Elegante
+        
+        ### ✨ Descrição do Produto
+        [Parágrafo objetivo sobre conforto, elegância e versatilidade da peça.]
+        
+        ---
+        
+        ### 🧵 Ficha Técnica
+        - **Categoria:** [Categoria do Produto]
+        - **Modelagem:** [Tipo de modelagem]
+        - **Tecido:** [Tecido principal ou "Conforme variação"]
+        - **Composição:** [Material se identificado]
+        - **Gola / Decote:** [Tipo de gola]
+        - **Manga:** [Tipo de manga]
+        - **Detalhes:** [Bolsos, Zíper, Botões]
+        - **Transparência:** [Sim/Não/Parcial]
+        - **Comprimento:** [Curto/Midi/Longo]
+        
+        ---
+        
+        ### 📏 Tabela de Medidas (Estimativa)
+        | Tamanho | Busto (cm) | Cintura (cm) | Quadril (cm) |
+        |---|---|---|---|
+        | P | 80-84 | 60-64 | 88-92 |
+        | M | 86-90 | 66-70 | 94-98 |
+        | G | 92-96 | 72-76 | 100-104 |
+        | GG | 98-102 | 78-82 | 106-110 |
+        
+        > *As medidas podem variar conforme o modelo.*
+        
+        ---
+        
+        ### 🎯 Indicação de Uso
+        - Uso diário
+        - Trabalho
+        - Passeios
+        - Eventos casuais
+        
+        ---
+        
+        ### 🧼 Cuidados com a Peça
+        - Lavar conforme etiqueta
+        - Não usar alvejante
+        - Secar à sombra
+        
+        ---
+        
+        ### 📦 Informações Adicionais
+        - **Conteúdo da embalagem:** 1 [Nome da Peça]
+        - **Origem:** Nacional
+        - **Envio:** Pronta entrega
+        
+        Retorne um JSON (PORTUGUÊS):
+        {
+            "title": "Título simples e direto",
+            "description": "O texto completo seguindo EXATAMENTE a estrutura de markdown acima",
+            "sizeTable": "Tabela de medidas formatada",
+            "extraDetails": {
+                "observations": "Ficha Técnica resumida",
+                "packaging": "1 Peça",
+                "shipping": "Pronta Entrega"
+            }
+        }`;
     } else {
         // Marketplace (Default)
         return `${basePrompt}
