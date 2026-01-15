@@ -139,8 +139,10 @@ const FlowCanvas = () => {
 
             {/* Main Scalable Content Container */}
             <motion.div
-                className="w-full h-full p-8 relative origin-top-center transition-transform duration-300 ease-out"
-                style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}
+                className="w-full h-full p-8 relative"
+                animate={{ scale: zoom }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                style={{ transformOrigin: 'top center' }}
             >
                 {/* Central Input Card - Draggable */}
                 <motion.div
