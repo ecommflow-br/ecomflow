@@ -15,7 +15,8 @@ export const generateProductContent = async (input, fileData, style = 'marketpla
 };
 
 const getStylePrompt = (style, input) => {
-    const basePrompt = `Analise este produto: "${input}". Aja como um especialista em e-commerce brasileiro.`;
+    const basePrompt = `Analise este produto: "${input}". Aja como um especialista em e-commerce brasileiro.
+    REGRA DE OURO: NÃO use emojis em excesso. O texto deve ser limpo e profissional. Evite usar muito negrito (**).`;
 
     if (style === 'elite') {
         return `${basePrompt}
@@ -23,39 +24,39 @@ const getStylePrompt = (style, input) => {
         
         IMPORTANTE: 
         - NÃO invente nome de loja.
-        - NÃO coloque WhatsApp ou Instagram (Regra de bloqueio do Marketplace).
+        - NÃO coloque WhatsApp ou Instagram.
         - NÃO coloque links externos.
         
-        Estrutura OBRIGATÓRIA (Siga este template visual):
+        Estrutura OBRIGATÓRIA (Siga este template visual limpo):
         
-        > **🚚 ENVIO IMEDIATO | 💎 QUALIDADE PREMIUM | 📸 FOTOS REAIS**
+        > ENVIO IMEDIATO | QUALIDADE PREMIUM | FOTOS REAIS
         
-        ## ✨ [TÍTULO PERSUASIVO COM EMOJI]
+        ## [TÍTULO PERSUASIVO]
         [Parágrafo de Hook: Identifique a dor/desejo e apresente a solução.]
         
-        ### ❤️ POR QUE VOCÊ VAI AMAR:
-        * **[Benefício 1]:** [Explicação]
-        * **[Benefício 2]:** [Explicação]
-        * **[Benefício 3]:** [Explicação]
+        ### POR QUE VOCÊ VAI AMAR:
+        - [Benefício 1]: [Explicação]
+        - [Benefício 2]: [Explicação]
+        - [Benefício 3]: [Explicação]
         
         ---
         
-        ## ❓ PERGUNTAS FREQUENTES (FAQ)
-        **1. [Pergunta comum sobre o nicho]?**
+        ## PERGUNTAS FREQUENTES (FAQ)
+        1. [Pergunta comum sobre o nicho]?
         [Resposta quebra-objeção]
         
-        **2. [Pergunta sobre tamanho/material]?**
+        2. [Pergunta sobre tamanho/material]?
         [Resposta técnica e tranquilizadora]
         
         ---
         
-        ## ✅ DICAS DE CUIDADO
-        * [Dica 1]
-        * [Dica 2]
+        ## DICAS DE CUIDADO
+        - [Dica 1]
+        - [Dica 2]
         
         ---
         
-        🛒 **[Chamada para Ação de Escassez - ex: Estoque Limitado]**
+        [Chamada para Ação de Escassez - ex: Estoque Limitado]
         
         Retorne um JSON (PORTUGUÊS):
         {
@@ -74,7 +75,7 @@ const getStylePrompt = (style, input) => {
         Foco: Narrativa, sofisticação, experiência e exclusividade.
         - Use uma linguagem culta, elegante e fluida (Storytelling).
         - Descreva o toque do tecido, o caimento no corpo de forma poética mas clara.
-        - Evite muitos emojis. Foco em adjetivos de valor (Atemporal, Chic, Refinado).
+        - NÃO use emojis. Foco em adjetivos de valor (Atemporal, Chic, Refinado).
         
         Retorne um JSON (PORTUGUÊS):
         {
@@ -93,27 +94,27 @@ const getStylePrompt = (style, input) => {
         
         Estrutura OBRIGATÓRIA (Siga exatamente este template):
         
-        ## 👗 [Nome do Produto] – Moda Casual & Elegante
+        ## [Nome do Produto] – Moda Casual & Elegante
         
-        ### ✨ Descrição do Produto
+        ### Descrição do Produto
         [Parágrafo objetivo sobre conforto, elegância e versatilidade da peça.]
         
         ---
         
-        ### 🧵 Ficha Técnica
-        - **Categoria:** [Categoria do Produto]
-        - **Modelagem:** [Tipo de modelagem]
-        - **Tecido:** [Tecido principal ou "Conforme variação"]
-        - **Composição:** [Material se identificado]
-        - **Gola / Decote:** [Tipo de gola]
-        - **Manga:** [Tipo de manga]
-        - **Detalhes:** [Bolsos, Zíper, Botões]
-        - **Transparência:** [Sim/Não/Parcial]
-        - **Comprimento:** [Curto/Midi/Longo]
+        ### Ficha Técnica
+        - Categoria: [Categoria do Produto]
+        - Modelagem: [Tipo de modelagem]
+        - Tecido: [Tecido principal ou "Conforme variação"]
+        - Composição: [Material se identificado]
+        - Gola / Decote: [Tipo de gola]
+        - Manga: [Tipo de manga]
+        - Detalhes: [Bolsos, Zíper, Botões]
+        - Transparência: [Sim/Não/Parcial]
+        - Comprimento: [Curto/Midi/Longo]
         
         ---
         
-        ### 📏 Tabela de Medidas (Estimativa)
+        ### Tabela de Medidas (Estimativa)
         | Tamanho | Busto (cm) | Cintura (cm) | Quadril (cm) |
         |---|---|---|---|
         | P | 80-84 | 60-64 | 88-92 |
@@ -121,11 +122,11 @@ const getStylePrompt = (style, input) => {
         | G | 92-96 | 72-76 | 100-104 |
         | GG | 98-102 | 78-82 | 106-110 |
         
-        > *As medidas podem variar conforme o modelo.*
+        > As medidas podem variar conforme o modelo.
         
         ---
         
-        ### 🎯 Indicação de Uso
+        ### Indicação de Uso
         - Uso diário
         - Trabalho
         - Passeios
@@ -133,17 +134,17 @@ const getStylePrompt = (style, input) => {
         
         ---
         
-        ### 🧼 Cuidados com a Peça
+        ### Cuidados com a Peça
         - Lavar conforme etiqueta
         - Não usar alvejante
         - Secar à sombra
         
         ---
         
-        ### 📦 Informações Adicionais
-        - **Conteúdo da embalagem:** 1 [Nome da Peça]
-        - **Origem:** Nacional
-        - **Envio:** Pronta entrega
+        ### Informações Adicionais
+        - Conteúdo da embalagem: 1 [Nome da Peça]
+        - Origem: Nacional
+        - Envio: Pronta entrega
         
         Retorne um JSON (PORTUGUÊS):
         {
@@ -161,15 +162,15 @@ const getStylePrompt = (style, input) => {
         return `${basePrompt}
         ESTILO: MARKETPLACE (Shopee/Mercado Livre).
         Foco: Leitura rápida, escaneabilidade, conversão direta.
-        - Use MUITOS emojis para organizar.
-        - Abuse de Bullet Points (✔, ✨, 🚀).
+        - Use listas simples.
         - Destaque "Características" e "Ficha Técnica" logo de cara.
         - NÃO use parágrafos longos.
+        - NÃO use emojis excessivos. Use apenas bullets simples (-).
         
         Retorne um JSON (PORTUGUÊS):
         {
-            "title": "Título SEO Otimizado (Palavras-chave + Ícones)",
-            "description": "Descrição em tópicos/bullets. Use ✔ para características.",
+            "title": "Título SEO Otimizado",
+            "description": "Descrição em tópicos/bullets.",
             "sizeTable": "Tabela clara",
             "extraDetails": {
                 "observations": "Dicas rápidas",
