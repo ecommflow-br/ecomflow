@@ -222,8 +222,18 @@ const FlowCanvas = () => {
                             <motion.div ref={titleRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[5%] top-[400px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
                                 <TitleNode data={{ content: result.title }} onRemove={() => handleRemoveResponseNode('title')} />
                                 {sku && (
-                                    <div className="absolute -top-3 -right-3 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-gray-700 flex items-center gap-1">
-                                        <Box size={10} className="text-indigo-400" /> SKU: {sku}
+                                    <div
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigator.clipboard.writeText(sku);
+                                            window.dispatchEvent(new CustomEvent('app-toast', {
+                                                detail: { message: `SKU Copiado: ${sku}`, type: 'success' }
+                                            }));
+                                        }}
+                                        className="absolute -top-3 -right-3 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-gray-700 flex items-center gap-1 cursor-pointer hover:bg-gray-800 hover:scale-105 transition-all active:scale-95 group"
+                                        title="Clique para copiar SKU"
+                                    >
+                                        <Box size={10} className="text-indigo-400 group-hover:text-emerald-400 transition-colors" /> SKU: {sku}
                                     </div>
                                 )}
                             </motion.div>
