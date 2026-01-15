@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import InputNode from '../nodes/InputNode';
 import { TitleNode, DescriptionNode, SizeTableNode, ExtraNode } from '../nodes/ResponseNodes';
 import MiniPriceNode from '../nodes/MiniPriceNode';
+import CalculatorNode from '../nodes/CalculatorNode';
 import HistorySidebar from './HistorySidebar';
 import { generateProductContent } from '../utils/ai';
 import { generateSKU } from '../utils/skuGenerator';
-import { Sparkles, ZoomIn, ZoomOut, Lock, Unlock, RotateCcw, Box, History } from 'lucide-react';
+import { Sparkles, ZoomIn, ZoomOut, Lock, Unlock, RotateCcw, Box, History, Calculator as CalcIcon, Plus } from 'lucide-react';
 
 const ConnectionLine = ({ fromRef, toRef, zoom }) => {
+    // ... (unchanged logic)
     const [path, setPath] = useState('');
     const updatePath = () => {
         try {
@@ -59,6 +61,7 @@ const FlowCanvas = () => {
     const [sku, setSku] = useState(null);
     const [zoom, setZoom] = useState(1);
     const [isLocked, setIsLocked] = useState(false);
+    const [calculators, setCalculators] = useState([]);
 
     // History State
     const [history, setHistory] = useState(() => {
@@ -82,7 +85,6 @@ const FlowCanvas = () => {
             const generatedSku = content.title ? generateSKU(content.title) : null;
             setSku(generatedSku);
 
-            // Add to history
             const newEntry = {
                 id: Date.now(),
                 timestamp: new Date().toISOString(),
@@ -102,6 +104,18 @@ const FlowCanvas = () => {
         }
     };
 
+    const handleAddCalculator = (x = 50, y = 300) => {
+        setCalculators(prev => [...prev, {
+            id: Date.now(),
+            x: x + (prev.length * 20),
+            y: y + (prev.length * 20)
+        }]);
+    };
+
+    const handleRemoveCalculator = (id) => {
+        setCalculators(prev => prev.filter(c => c.id !== id));
+    };
+
     const handleRestore = (item) => {
         setResult(item.result);
         setSku(item.sku);
@@ -114,6 +128,15 @@ const FlowCanvas = () => {
             localStorage.removeItem('ecomflow_history');
         }
     };
+
+    useEffect(() => {
+        const listener = (e) => {
+            const { x, y } = e.detail || { x: 50, y: 300 };
+            handleAddCalculator(x, y);
+        };
+        window.addEventListener('add-calculator', listener);
+        return () => window.removeEventListener('add-calculator', listener);
+    }, []);
 
     const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1.5));
     const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
@@ -161,6 +184,22 @@ const FlowCanvas = () => {
                     <InputNode onGenerate={handleGenerate} />
                 </motion.div>
 
+                {calculators.map(calc => (
+                    <motion.div
+                        key={calc.id}
+                        drag={!isLocked}
+                        dragMomentum={false}
+                        initial={{ opacity: 0, scale: 0.8, x: calc.x, y: calc.y }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`absolute z-20 hover:z-50 ${isLocked ? 'cursor-default' : 'cursor-move active:cursor-grabbing'}`}
+                    >
+                        <CalculatorNode
+                            onRemove={() => handleRemoveCalculator(calc.id)}
+                            onAdd={handleAddCalculator}
+                        />
+                    </motion.div>
+                ))}
+
                 <AnimatePresence>
                     {loading && (
                         <motion.div
@@ -205,11 +244,11 @@ const FlowCanvas = () => {
                     </>
                 )}
 
-                {!result && !loading && (
+                {!result && !loading && calculators.length === 0 && (
                     <div className="absolute top-[450px] left-1/2 -translate-x-1/2 text-center text-gray-400 max-w-md pointer-events-none">
                         <Sparkles className="mx-auto mb-4 text-indigo-300" size={48} />
                         <p className="text-sm font-bold">Arraste os cards para organizar sua mente.</p>
-                        <p className="text-xs opacity-60 mt-2">Dica: Cole uma imagem direta no input para análise visual.</p>
+                        <p className="text-xs opacity-60 mt-2">Dica: Adicione uma calculadora ou cole uma imagem no input.</p>
                     </div>
                 )}
             </motion.div>
@@ -219,6 +258,14 @@ const FlowCanvas = () => {
                 <button onClick={() => setIsHistoryOpen(true)} className="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600 transition-colors" title="Ver Histórico">
                     <History size={20} />
                 </button>
+                <div className="w-px h-6 bg-gray-200 mx-1" />
+
+                {/* NEW: ADD CALCULATOR BUTTON */}
+                <button onClick={handleAddCalculator} className="p-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white transition-all shadow-md flex items-center gap-2 px-3" title="Add Calculadora">
+                    <Plus size={18} />
+                    <span className="text-xs font-bold">Calculadora</span>
+                </button>
+
                 <div className="w-px h-6 bg-gray-200 mx-1" />
                 <button onClick={handleZoomOut} className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors" title="Zoom Out">
                     <ZoomOut size={20} />

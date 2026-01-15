@@ -154,3 +154,44 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
 
     throw new Error(`O Google não encontrou o modelo 2.5/2.0/1.5 na sua conta. Erro retornado: ${lastErrorMsg}`);
 };
+
+export const calculateWithAI = async (prompt) => {
+    const openAiKey = localStorage.getItem("openai_api_key")?.trim();
+    const geminiKey = localStorage.getItem("gemini_api_key")?.trim();
+
+    const systemPrompt = `Você é um assistente de precificação de e-commerce.
+    Analise o texto do usuário e extraia os valores para um cálculo de lucro.
+    Retorne APENAS um JSON válido seguindo este modelo:
+    {
+        "cost": 0, (custo do produto)
+        "tax": 0, (porcentagem de impostos/taxas)
+        "markup": 0, (porcentagem de lucro sobre custo - Modo Padrão)
+        "extra": 0, (custos extras fixos)
+        "targetPrice": 0, (preço de venda alvo - Modo Reverso)
+        "desiredMargin": 0, (margem líquida desejada em % - Modo Reverso)
+        "shipping": 0, (custo de frete - Modo Reverso)
+        "mode": "standard" | "reverse" (determine o melhor modo baseado no pedido)
+    }
+    Se o usuário não mencionar um valor, use 0. Se ele quiser saber o preço a partir do custo, use "standard". Se ele der um preço de venda e quiser saber o custo máximo ou lucro, use "reverse".`;
+
+    if (openAiKey) {
+        const openai = new OpenAI({ apiKey: openAiKey, dangerouslyAllowBrowser: true });
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            response_format: { type: "json_object" }
+        });
+        return parseAIResponse(response.choices[0].message.content);
+    } else if (geminiKey) {
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(`${systemPrompt}\n\nTexto do usuário: ${prompt}`);
+        const response = await result.response;
+        return parseAIResponse(response.text());
+    } else {
+        throw new Error("API Key não configurada.");
+    }
+};
