@@ -1,26 +1,84 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
-export const generateProductContent = async (input, fileData, tone = 'standard') => {
+export const generateProductContent = async (input, fileData, style = 'marketplace') => {
     const openAiKey = localStorage.getItem("openai_api_key")?.trim();
     const geminiKey = localStorage.getItem("gemini_api_key")?.trim();
 
     if (openAiKey) {
-        return await generateWithOpenAI(openAiKey, input, fileData, tone);
+        return await generateWithOpenAI(openAiKey, input, fileData, style);
     } else if (geminiKey) {
-        return await generateWithGemini(geminiKey, input, fileData, tone);
+        return await generateWithGemini(geminiKey, input, fileData, style);
     } else {
         throw new Error("Nenhuma chave de API encontrada. Por favor, configure OpenAI ou Gemini nas configurações.");
     }
 };
 
-const getToneInstruction = (tone) => {
-    switch (tone) {
-        case 'sales': return "TOM DE VOZ: Agressivo, persuasivo, focado em gatilhos mentais (escassez, urgência). Use palavras de poder.";
-        case 'luxury': return "TOM DE VOZ: Sofisticado, elegante, minimalista. Use adjetivos de alto padrão (exclusivo, premium, refinado).";
-        case 'fun': return "TOM DE VOZ: Descontraído, jovem, divertido. Pode usar gírias leves (se apropriado) e conectar com Gen Z.";
-        case 'seo': return "TOM DE VOZ: Técnico, frio e extremamente focado em palavras-chave e densidade de keywords.";
-        default: return "TOM DE VOZ: Profissional, equilibrado e informativo (Padrão E-commerce).";
+const getStylePrompt = (style, input) => {
+    const basePrompt = `Analise este produto: "${input}". Aja como um especialista em e-commerce brasileiro.`;
+
+    if (style === 'elite') {
+        return `${basePrompt}
+        ESTILO: COPYWRITING DE ALTA CONVERSÃO (ELITE).
+        Estrutura OBRIGATÓRIA (Siga exatamente estes tópicos):
+        1. HOOK (Pergunta/Dor): Comece com uma pergunta que toca numa dor do cliente (ex: "Cansado de roupa que amassa?").
+        2. SOLUÇÃO (Benefício): Apresente o produto como a solução definitiva, focando na qualidade técnica (ex: "Tecido Premium Gramatura 190").
+        3. DETALHES TÉCNICOS: Use termos como "Acabamento Premium", "Zero Transparência", "Ajuste Perfeito".
+        4. BULLETS DE BENEFÍCIOS: Liste 5 benefícios reais de uso.
+        5. PROVA SOCIAL/GARANTIA: Mencione satisfação garantida.
+        6. CHAMADA PARA AÇÃO (CTA): Finalize com urgência.
+        
+        Retorne um JSON (PORTUGUÊS):
+        {
+            "title": "Título SEO Matador (com gatilhos)",
+            "description": "O texto completo da copy seguindo a estrutura acima (use quebras de linha e emojis estratégicos)",
+            "sizeTable": "Tabela detalhada",
+            "extraDetails": {
+                "observations": "Ficha Técnica (Tecido, Gramatura, Transparência)",
+                "packaging": "Unboxing Experience",
+                "shipping": "Envio Imediato"
+            }
+        }`;
+    } else if (style === 'boutique') {
+        return `${basePrompt}
+        ESTILO: BOUTIQUE / LUXO.
+        Foco: Narrativa, sofisticação, experiência e exclusividade.
+        - Use uma linguagem culta, elegante e fluida (Storytelling).
+        - Descreva o toque do tecido, o caimento no corpo de forma poética mas clara.
+        - Evite muitos emojis. Foco em adjetivos de valor (Atemporal, Chic, Refinado).
+        
+        Retorne um JSON (PORTUGUÊS):
+        {
+            "title": "Título Elegante e Descritivo",
+            "description": "Texto em parágrafos fluidos descrevendo a experiência de usar a peça.",
+            "sizeTable": "Tabela de medidas",
+            "extraDetails": {
+                "observations": "Detalhes de costura e acabamento",
+                "packaging": "Apresentação Premium",
+                "shipping": "Prazo"
+            }
+        }`;
+    } else {
+        // Marketplace (Default)
+        return `${basePrompt}
+        ESTILO: MARKETPLACE (Shopee/Mercado Livre).
+        Foco: Leitura rápida, escaneabilidade, conversão direta.
+        - Use MUITOS emojis para organizar.
+        - Abuse de Bullet Points (✔, ✨, 🚀).
+        - Destaque "Características" e "Ficha Técnica" logo de cara.
+        - NÃO use parágrafos longos.
+        
+        Retorne um JSON (PORTUGUÊS):
+        {
+            "title": "Título SEO Otimizado (Palavras-chave + Ícones)",
+            "description": "Descrição em tópicos/bullets. Use ✔ para características.",
+            "sizeTable": "Tabela clara",
+            "extraDetails": {
+                "observations": "Dicas rápidas",
+                "packaging": "O que vem na caixa",
+                "shipping": "Envio"
+            }
+        }`;
     }
 };
 
@@ -54,32 +112,19 @@ const parseAIResponse = (rawText) => {
     }
 };
 
-const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
+const generateWithOpenAI = async (apiKey, input, fileData, style) => {
     const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-    const toneInst = getToneInstruction(tone);
+    const promptText = getStylePrompt(style, input);
 
     const messages = [
         {
             role: "system",
-            content: `Você é um especialista em E-commerce brasileiro. Responda APENAS com um JSON válido em português. IMPORTANTE: NÃO USE EMOJIS. ${toneInst}`
+            content: `Você é um especialista em E-commerce. Responda APENAS com um JSON válido.`
         },
         {
             role: "user",
             content: [
-                {
-                    type: "text", text: `Analise este produto e gere um JSON seguindo este padrão:
-            {
-                "title": "Título SEO Otimizado",
-                "description": "Descrição persuasiva em bullets",
-                "sizeTable": "Tabela de medidas",
-                "extraDetails": {
-                    "observations": "Dicas de uso",
-                    "packaging": "O que vem na caixa",
-                    "shipping": "Prazo estimado"
-                }
-            }
-            Produto: ${input}`
-                },
+                { type: "text", text: promptText },
                 fileData ? { type: "image_url", image_url: { url: fileData } } : null
             ].filter(Boolean)
         }
@@ -89,7 +134,7 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages,
-            max_tokens: 1200,
+            max_tokens: 1500,
             response_format: { type: "json_object" }
         });
 
@@ -100,9 +145,9 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
     }
 };
 
-const generateWithGemini = async (apiKey, input, fileData, tone) => {
+const generateWithGemini = async (apiKey, input, fileData, style) => {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const toneInst = getToneInstruction(tone);
+    const prompt = getStylePrompt(style, input);
 
     // Priorizando o NOVO modelo 2.5 Flash como solicitado pelo usuário
     const modelsToTry = [
@@ -114,19 +159,6 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
         "gemini-1.0-pro",
         "gemini-pro"
     ];
-
-    const prompt = `
-    Aja como um especialista em e-commerce brasileiro. ${toneInst}
-    Analise o produto: "${input}"
-    
-    ATENÇÃO ULTRA-DETALHADA: Analise minuciosamente a imagem/texto. Identifique amarrações, tipos de manga, golas, zíperes, texturas e acabamentos. Se houver amarração, descreva exatamente como é.
-    
-    Retorne APENAS um JSON (PORTUGUÊS, SEM EMOJIS):
-    - title: Título SEO (Keywords fortes).
-    - description: Descrição vendedora profissional. IMPORTANTE: NÃO USE LISTA NUMERADA (1., 2.). Use texto fluido ou bullets simples (-). Destaque os detalhes visuais encontrados (amarração, caimento).
-    - sizeTable: Tabela completa.
-    - extraDetails: Objeto (Observations, Packaging, Shipping). Em Observations, liste detalhes técnicos como tecido, forro e fechamento.
-    `;
 
     let lastErrorMsg = "";
 
@@ -193,7 +225,6 @@ export const calculateWithAI = async (prompt) => {
     } else if (geminiKey) {
         const genAI = new GoogleGenerativeAI(geminiKey);
 
-        // Fallback list specifically for calculation - EXACT MATCH to generateWithGemini
         const modelsToTry = [
             "gemini-2.5-flash",
             "gemini-2.0-flash",

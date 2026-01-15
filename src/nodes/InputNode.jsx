@@ -3,13 +3,9 @@ import { Sparkles, Mic, MicOff, Image as ImageIcon, Send, X } from 'lucide-react
 
 const InputNode = ({ onGenerate }) => {
     const [text, setText] = useState('');
-    const [image, setImage] = useState(null); // localImage state handled by parent or logic below
     const [localImage, setLocalImage] = useState(null);
     const [isListening, setIsListening] = useState(false);
-    const [tone, setTone] = useState('standard'); // New State
-
-    // Helper to sync image state if needed or just use localImage
-    // Simplified logic for this component based on previous edits
+    const [style, setStyle] = useState('marketplace'); // 'marketplace', 'boutique', 'elite'
 
     const onImageChange = (e) => {
         const file = e.target.files[0];
@@ -21,7 +17,7 @@ const InputNode = ({ onGenerate }) => {
     };
 
     const handleAction = () => {
-        if (onGenerate) onGenerate(text, localImage, tone);
+        if (onGenerate) onGenerate(text, localImage, style);
     };
 
     const handlePaste = (e) => {
@@ -42,9 +38,8 @@ const InputNode = ({ onGenerate }) => {
 
     const toggleListening = () => {
         setIsListening(!isListening);
-        // Mock recording logic
         if (!isListening) {
-            setTimeout(() => setIsListening(false), 2000); // Auto stop mock
+            setTimeout(() => setIsListening(false), 2000);
         }
     };
 
@@ -60,21 +55,28 @@ const InputNode = ({ onGenerate }) => {
                         <Sparkles size={20} />
                         <span className="font-bold text-xs uppercase tracking-widest">Input do Produto</span>
                     </div>
+                </div>
 
-                    {/* Tone Selector */}
-                    <div className="relative">
-                        <select
-                            value={tone}
-                            onChange={(e) => setTone(e.target.value)}
-                            className="bg-gray-50 border-none text-xs font-bold text-indigo-600 outline-none cursor-pointer hover:bg-indigo-50 rounded-lg p-1 transition-colors"
-                        >
-                            <option value="standard">Padrão</option>
-                            <option value="sales">Vendedor (Agressivo)</option>
-                            <option value="luxury">Luxo (Sofisticado)</option>
-                            <option value="fun">Jovem (Divertido)</option>
-                            <option value="seo">SEO Técnico</option>
-                        </select>
-                    </div>
+                {/* Style Selector Buttons */}
+                <div className="flex bg-gray-50 p-1 rounded-xl shadow-inner border border-gray-100 mb-4">
+                    <button
+                        onClick={() => setStyle('marketplace')}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'marketplace' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-400 hover:bg-white hover:text-indigo-500'}`}
+                    >
+                        ⚡ Marketplace
+                    </button>
+                    <button
+                        onClick={() => setStyle('boutique')}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'boutique' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'text-gray-400 hover:bg-white hover:text-purple-500'}`}
+                    >
+                        💎 Boutique
+                    </button>
+                    <button
+                        onClick={() => setStyle('elite')}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-tight rounded-lg transition-all ${style === 'elite' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-400 hover:bg-white hover:text-emerald-500'}`}
+                    >
+                        🔥 Copy Elite
+                    </button>
                 </div>
 
                 <div
@@ -103,11 +105,11 @@ const InputNode = ({ onGenerate }) => {
                     </div>
                 </div>
 
-                {localImage && ( // Changed 'image' to 'localImage'
+                {localImage && (
                     <div className="mt-4 relative group">
                         <img src={localImage} className="w-full h-32 object-cover rounded-xl border border-black/10 shadow-sm" alt="Preview" />
                         <button
-                            onClick={() => setLocalImage(null)} // Changed to setLocalImage
+                            onClick={() => setLocalImage(null)}
                             className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                             <X size={14} />
@@ -116,16 +118,17 @@ const InputNode = ({ onGenerate }) => {
                 )}
 
                 <div className="flex gap-2 mt-6">
-                    {/* The mic and image upload buttons are now inside the textarea wrapper,
-                        but the send button remains here.
-                        The provided snippet only shows the send button here, so I'll keep it.
-                        The original mic and image buttons are replaced by the new structure.
-                    */}
                     <button
                         onClick={handleAction}
-                        className="flex-1 p-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center gap-2 transition-all font-bold text-sm text-white shadow-lg shadow-indigo-600/20"
+                        className={`flex-1 p-3 rounded-xl flex items-center justify-center gap-2 transition-all font-bold text-sm text-white shadow-lg
+                            ${style === 'marketplace' ? 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20' :
+                                style === 'boutique' ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' :
+                                    'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'}`}
                     >
-                        <Send size={16} /> Gerar
+                        <Send size={16} />
+                        {style === 'marketplace' ? 'Gerar Anúncio Rápido' :
+                            style === 'boutique' ? 'Gerar Copy Boutique' :
+                                'Gerar Copy de Alta Conversão'}
                     </button>
                 </div>
             </div>
