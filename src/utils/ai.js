@@ -104,29 +104,25 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const toneInst = getToneInstruction(tone);
 
-    // Lista de modelos para tentar em ordem de probabilidade
-    // Inclui variações de 2.0 e o "2.5" citado, além de modelos legacy
+    // Lista de modelos na ordem exata de IDs técnicos da API
+    // Obs: No AI Studio as vezes aparece 2.5 mas o ID é 2.0-flash ou 2.0-flash-lite
     const modelsToTry = [
-        "gemini-2.0-flash",       // Estável Oficial
-        "gemini-2.5-flash",       // Citado pelo usuário
-        "gemini-2.0-flash-exp",   // Experimental anterior
-        "gemini-1.5-flash",       // Estável anterior
-        "gemini-1.5-flash-latest",
-        "gemini-2.0-pro-exp-0205", // Novo Pro
-        "gemini-2.0-flash-lite-preview-0205" // Novo Lite
+        "gemini-2.0-flash",       // Versão estável mais recente
+        "gemini-2.0-flash-exp",   // Frequentemente o que aparece como "2.x" no painel
+        "gemini-1.5-flash",       // Backup estável
+        "gemini-2.0-flash-lite-preview-0205", // Nova versão lite (fevereiro/2026)
+        "gemini-2.5-flash"        // Nome hipotético solicitado
     ];
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. ${toneInst}
-    Analise a descrição ou imagem do produto: "${input}"
+    Analise o produto: "${input}"
     
-    Gere um JSON LIMPO (SEM EMOJIS, TOTALMENTE EM PORTUGUÊS) com:
-    - title: Título nacional otimizado para SEO.
-    - description: Descrição vendedora completa com bullets técnicos.
-    - sizeTable: Tabela de medidas sugerida.
-    - extraDetails: Objeto com "Dicas", "Observações", "Conteúdo da Embalagem".
-
-    IMPORTANTE: Retorne APENAS o JSON. Sem textos explicativos.
+    Retorne APENAS um JSON (SEM EMOJIS, PORTUGUÊS):
+    - title: Título SEO.
+    - description: Descrição vendedora com bullets.
+    - sizeTable: Tabela.
+    - extraDetails: Objeto com Dicas, Observações, Embalagem.
     `;
 
     let errors = [];
@@ -151,15 +147,16 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
             const response = await result.response;
             return parseAIResponse(response.text());
         } catch (error) {
-            console.warn(`Indisponível (${modelName}):`, error.message);
-            // Salva o erro para mostrar no final se nada funcionar
-            errors.push(`${modelName}: ${error.message.substring(0, 50)}...`);
+            console.warn(`Erro no ${modelName}:`, error.message);
 
-            // Se for erro de quota ou chave bloqueada, não adianta tentar outros
-            if (error.message?.includes("429") || error.message?.includes("403")) throw error;
+            // Se for cota ou chave, não tenta os outros
+            if (error.status === 403 || error.status === 429 || error.message?.includes("API key")) {
+                throw error;
+            }
+
+            errors.push(`${modelName}: ${error.message}`);
         }
     }
 
-    // Erro final informativo
-    throw new Error(`Nenhum modelo Gemini funcionou. Erros: ${errors.join(" | ")}. Verifique se seu plano tem acesso ao 'Flash' no AI Studio.`);
+    throw new Error(`Falha no Google: Verifique se sua chave tem acesso aos modelos Flash no AI Studio. Detalhes: ${errors.join(" | ")}`);
 };
