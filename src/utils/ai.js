@@ -104,12 +104,16 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const toneInst = getToneInstruction(tone);
 
-    // Priorizando o NOVO modelo 2.5 Flash citado pelo usuário
+    // Lista de modelos para tentar em ordem de probabilidade
+    // Inclui variações de 2.0 e o "2.5" citado, além de modelos legacy
     const modelsToTry = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-exp",
-        "gemini-1.5-flash"
+        "gemini-2.0-flash",       // Estável Oficial
+        "gemini-2.5-flash",       // Citado pelo usuário
+        "gemini-2.0-flash-exp",   // Experimental anterior
+        "gemini-1.5-flash",       // Estável anterior
+        "gemini-1.5-flash-latest",
+        "gemini-2.0-pro-exp-0205", // Novo Pro
+        "gemini-2.0-flash-lite-preview-0205" // Novo Lite
     ];
 
     const prompt = `
@@ -125,14 +129,14 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     IMPORTANTE: Retorne APENAS o JSON. Sem textos explicativos.
     `;
 
-    let lastError = null;
+    let errors = [];
 
     for (const modelName of modelsToTry) {
         try {
-            console.log(`Buscando modelo: ${modelName}`);
+            console.log(`Tentando Gemini: ${modelName}`);
             const model = genAI.getGenerativeModel({ model: modelName });
-            let result;
 
+            let result;
             if (fileData) {
                 const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
                 const base64Data = fileData.split(',')[1];
@@ -147,14 +151,15 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
             const response = await result.response;
             return parseAIResponse(response.text());
         } catch (error) {
-            lastError = error;
-            console.warn(`Indisponível: ${modelName}. Erro: ${error.message}`);
+            console.warn(`Indisponível (${modelName}):`, error.message);
+            // Salva o erro para mostrar no final se nada funcionar
+            errors.push(`${modelName}: ${error.message.substring(0, 50)}...`);
 
-            // Se for cota (429) ou chave bloqueada (403), para pois não é erro de modelo
+            // Se for erro de quota ou chave bloqueada, não adianta tentar outros
             if (error.message?.includes("429") || error.message?.includes("403")) throw error;
         }
     }
 
-    // Erro final mais amigável
-    throw new Error(`Nenhum modelo Gemini (incluindo o 2.5) pôde ser acessado. Verifique se o nome exato no seu AI Studio é 'gemini-2.5-flash' ou se há restrições na sua chave.`);
+    // Erro final informativo
+    throw new Error(`Nenhum modelo Gemini funcionou. Erros: ${errors.join(" | ")}. Verifique se seu plano tem acesso ao 'Flash' no AI Studio.`);
 };
