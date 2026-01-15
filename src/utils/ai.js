@@ -2,8 +2,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
 export const generateProductContent = async (input, fileData, tone = 'standard') => {
-    const openAiKey = localStorage.getItem("openai_api_key");
-    const geminiKey = localStorage.getItem("gemini_api_key");
+    const openAiKey = localStorage.getItem("openai_api_key")?.trim();
+    const geminiKey = localStorage.getItem("gemini_api_key")?.trim();
 
     if (openAiKey) {
         return await generateWithOpenAI(openAiKey, input, fileData, tone);
@@ -61,21 +61,21 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
     const messages = [
         {
             role: "system",
-            content: `Você é um especialista em E-commerce. Responda APENAS com um JSON válido. IMPORTANTE: NÃO USE EMOJIS. ${toneInst}`
+            content: `Você é um especialista em E-commerce brasileiro. Responda APENAS com um JSON válido em português. IMPORTANTE: NÃO USE EMOJIS. ${toneInst}`
         },
         {
             role: "user",
             content: [
                 {
-                    type: "text", text: `Analise este produto e gere um JSON seguindo este padrão (sem emojis):
+                    type: "text", text: `Analise este produto e gere um JSON seguindo este padrão:
             {
-                "title": "Título SEO Otimizado (ex: Vestido Longo...)",
-                "description": "Texto persuasivo de venda + Lista de Características (Tecido, Modelo, Detalhes)",
-                "sizeTable": "Tabela de medidas sugerida (P/M/G ou cm)",
+                "title": "Título SEO Otimizado",
+                "description": "Descrição persuasiva em bullets",
+                "sizeTable": "Tabela de medidas",
                 "extraDetails": {
-                    "observations": "Observações Importantes (ex: variação de cor)",
-                    "packaging": "Conteúdo da Embalagem",
-                    "shipping": "Informações de Envio"
+                    "observations": "Dicas de uso",
+                    "packaging": "O que vem na caixa",
+                    "shipping": "Prazo estimado"
                 }
             }
             Produto: ${input}`
@@ -89,7 +89,7 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages,
-            max_tokens: 1000,
+            max_tokens: 1200,
             response_format: { type: "json_object" }
         });
 
@@ -102,20 +102,20 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
 
 const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // Use stable 2.0 flash
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const toneInst = getToneInstruction(tone);
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. ${toneInst}
-    Analise a descrição ou imagem: "${input}"
+    Analise a descrição ou imagem do produto: "${input}"
     
-    Gere um JSON (SEM EMOJIS) com:
-    - title: Título otimizado para SEO.
-    - description: Descrição vendedora completa com bullets.
-    - sizeTable: Sugestão de medidas.
-    - extraDetails: Objeto com "Cuidados", "Observações", "Conteúdo da Embalagem".
+    Gere um JSON LIMPO (SEM EMOJIS, TOTALMENTE EM PORTUGUÊS) com:
+    - title: Título otimizado para SEO nacional.
+    - description: Descrição vendedora completa com bullets técnicos.
+    - sizeTable: Tabela de medidas sugerida.
+    - extraDetails: Objeto com "Dicas", "Observações", "Conteúdo da Embalagem".
 
-    NÃO use emojis. RETORNE APENAS O JSON LIMPO.
+    IMPORTANTE: Retorne APENAS o JSON. Sem textos antes ou depois.
     `;
 
     try {
@@ -135,7 +135,8 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
         return parseAIResponse(response.text());
     } catch (error) {
         console.error("Gemini API Error:", error);
-        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida.");
+        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Tente novamente em 1-2 minutos ou use OpenAI.");
+        if (error.message?.includes("403")) throw new Error("Chave Gemini INVÁLIDA ou bloqueada por segurança. Verifique no AI Studio.");
         throw error;
     }
 };

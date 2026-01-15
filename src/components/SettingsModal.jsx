@@ -7,8 +7,8 @@ export default function SettingsModal({ isOpen, onClose }) {
     const [saved, setSaved] = useState(false);
 
     const save = () => {
-        if (geminiKey) localStorage.setItem('gemini_api_key', geminiKey);
-        if (openAiKey) localStorage.setItem('openai_api_key', openAiKey);
+        localStorage.setItem('gemini_api_key', geminiKey.trim());
+        localStorage.setItem('openai_api_key', openAiKey.trim());
         setSaved(true);
         setTimeout(() => {
             setSaved(false);
