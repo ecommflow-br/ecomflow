@@ -1,6 +1,64 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
+// New Function
+export const analyzeCompetitor = async (text) => {
+    const prompt = `
+    Aja como um estrategista de e-commerce sênior.
+    Analise este anúncio de um concorrente e me dê insights estratégicos para superá-lo.
+    
+    ANÚNCIO DO CONCORRENTE:
+    "${text}"
+    
+    Retorne APENAS um JSON (sem markdown) com esta estrutura:
+    {
+        "weaknesses": ["Ponto fraco 1", "Ponto fraco 2"],
+        "strengths": ["Ponto forte 1", "Ponto forte 2"],
+        "opportunity": "Uma frase tática sobre como ganhar a venda (ex: focar na dor x, oferecer brinde y).",
+        "betterTitle": "Sugestão de título melhor"
+    }
+    `;
+
+    // Use OpenAI if available (preferred)
+    const openAiKey = localStorage.getItem('openai_api_key');
+    if (openAiKey) {
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${openAiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-4o-mini",
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.7
+                })
+            });
+            const data = await response.json();
+            let content = data.choices[0].message.content;
+            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(content);
+        } catch (e) {
+            console.error("OpenAI Analysis Failed", e);
+        }
+    }
+
+    // Fallback to Gemini
+    const geminiKey = localStorage.getItem('gemini_api_key');
+    if (geminiKey) {
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        let text = result.response.text();
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(text);
+    }
+
+    throw new Error("Nenhuma API Key configurada. Vá em configurações.");
+};
+
+
 export const generateProductContent = async (input, fileData, style = 'marketplace') => {
     const openAiKey = localStorage.getItem("openai_api_key")?.trim();
     const geminiKey = localStorage.getItem("gemini_api_key")?.trim();
