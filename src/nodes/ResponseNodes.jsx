@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Copy, Check, Tally3, AlignLeft, Table, PlusCircle, Maximize2, X, Minimize2, Sparkles, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -76,43 +77,47 @@ const BaseResponseNode = ({ title, icon: Icon, color, content, onRemove }) => {
                 </div>
             </div>
 
-            {/* Zen Mode Modal */}
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-md flex flex-col p-8 md:p-16"
-                    >
-                        <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
-                            <div className="flex justify-between items-center mb-8">
-                                <div className={`flex items-center gap-3 ${color}`}>
-                                    <Icon size={32} />
-                                    <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+            {/* Zen Mode Modal - Popped out to body */}
+            {createPortal(
+                <AnimatePresence>
+                    {isExpanded && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            key="zen-mode-modal"
+                            className="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md flex flex-col p-8 md:p-16"
+                        >
+                            <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
+                                <div className="flex justify-between items-center mb-8">
+                                    <div className={`flex items-center gap-3 ${color}`}>
+                                        <Icon size={32} />
+                                        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button onClick={handleCopy} className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl font-bold transition-all">
+                                            {copied ? <Check size={20} /> : <Copy size={20} />}
+                                            {copied ? 'Copiado!' : 'Copiar Texto'}
+                                        </button>
+                                        <button onClick={() => setIsExpanded(false)} className="p-3 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 rounded-xl transition-all">
+                                            <Minimize2 size={24} />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex gap-4">
-                                    <button onClick={handleCopy} className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl font-bold transition-all">
-                                        {copied ? <Check size={20} /> : <Copy size={20} />}
-                                        {copied ? 'Copiado!' : 'Copiar Texto'}
-                                    </button>
-                                    <button onClick={() => setIsExpanded(false)} className="p-3 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 rounded-xl transition-all">
-                                        <Minimize2 size={24} />
-                                    </button>
+
+                                <div className="flex-1 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm overflow-y-auto text-lg leading-loose text-gray-800 font-medium custom-scrollbar">
+                                    {renderContent(true)}
                                 </div>
-                            </div>
 
-                            <div className="flex-1 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm overflow-y-auto text-lg leading-loose text-gray-800 font-medium">
-                                {renderContent(true)}
+                                <p className="text-center text-gray-400 mt-6 text-sm flex items-center justify-center gap-2">
+                                    <Sparkles size={14} /> Modo de Foco: Sem distrações.
+                                </p>
                             </div>
-
-                            <p className="text-center text-gray-400 mt-6 text-sm flex items-center justify-center gap-2">
-                                <Sparkles size={14} /> Modo de Foco: Sem distrações.
-                            </p>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </>
     );
 };
