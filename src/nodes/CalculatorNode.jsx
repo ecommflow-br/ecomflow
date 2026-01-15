@@ -206,7 +206,7 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
                                     value={chatInput}
                                     onChange={(e) => setChatInput(e.target.value)}
                                     placeholder="Fale com a calculadora..."
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold pr-12 outline-none focus:border-indigo-500"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 pr-12 outline-none focus:border-indigo-500"
                                 />
                                 <button type="submit" disabled={loading} className="absolute right-2 top-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
                                     {loading ? <RefreshCw size={14} className="animate-spin" /> : <MessageSquare size={14} />}
@@ -216,20 +216,20 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
                     ) : mode === 'standard' ? (
                         <div className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-[9px] font-black text-gray-400 uppercase">Custo Produto (R$)</label>
+                                <label className="text-[9px] font-black text-gray-600 uppercase">Custo Produto (R$)</label>
                                 <div className="relative">
                                     <DollarSign size={14} className="absolute left-3 top-2.5 text-gray-300" />
-                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-gray-50 border border-transparent focus:border-indigo-500 rounded-xl py-2 pl-9 pr-4 text-xs font-bold outline-none" />
+                                    <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full bg-gray-50 border border-transparent focus:border-indigo-500 rounded-xl py-2 pl-9 pr-4 text-xs font-bold text-gray-900 outline-none" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase">Markup (%)</label>
-                                    <input type="number" value={markup} onChange={(e) => setMarkup(e.target.value)} className="w-full bg-gray-50 border border-transparent focus:border-indigo-500 rounded-xl py-2 px-3 text-xs font-bold outline-none" />
+                                    <label className="text-[9px] font-black text-gray-600 uppercase">Markup (%)</label>
+                                    <input type="number" value={markup} onChange={(e) => setMarkup(e.target.value)} className="w-full bg-gray-50 border border-transparent focus:border-indigo-500 rounded-xl py-2 px-3 text-xs font-bold text-gray-900 outline-none" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase">Taxas (%)</label>
-                                    <input type="number" value={tax} onChange={(e) => { setTax(e.target.value); setPlatform('manual'); }} className="w-full bg-gray-50 border border-transparent focus:border-indigo-500 rounded-xl py-2 px-3 text-xs font-bold outline-none" />
+                                    <label className="text-[9px] font-black text-gray-600 uppercase">Taxas (%)</label>
+                                    <input type="number" value={tax} onChange={(e) => { setTax(e.target.value); setPlatform('manual'); }} className="w-full bg-gray-50 border border-transparent focus:border-indigo-500 rounded-xl py-2 px-3 text-xs font-bold text-gray-900 outline-none" />
                                 </div>
                             </div>
                             {result && (
@@ -251,17 +251,17 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
                                 <label className="text-[9px] font-black text-purple-600 uppercase text-center block">Preço Alvo</label>
                                 <div className="relative">
                                     <Target size={14} className="absolute left-1/2 -ml-[60px] top-2.5 text-purple-300" />
-                                    <input type="number" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} className="w-full bg-purple-50 text-center border border-transparent focus:border-purple-500 rounded-xl py-2 pl-4 pr-4 text-xs font-bold outline-none" placeholder="Ex: 99.90" />
+                                    <input type="number" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} className="w-full bg-purple-50 text-center border border-transparent focus:border-purple-500 rounded-xl py-2 pl-4 pr-4 text-xs font-bold text-gray-900 outline-none" placeholder="Ex: 99.90" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase">Margem Alvo (%)</label>
-                                    <input type="number" value={desiredMargin} onChange={(e) => setDesiredMargin(e.target.value)} className="w-full bg-gray-50 border border-transparent focus:border-purple-500 rounded-xl py-2 px-3 text-xs font-bold outline-none" />
+                                    <label className="text-[9px] font-black text-gray-600 uppercase">Margem Alvo (%)</label>
+                                    <input type="number" value={desiredMargin} onChange={(e) => setDesiredMargin(e.target.value)} className="w-full bg-gray-50 border border-transparent focus:border-purple-500 rounded-xl py-2 px-3 text-xs font-bold text-gray-900 outline-none" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase">Taxas (%)</label>
-                                    <input type="number" value={reverseTax} onChange={(e) => { setReverseTax(e.target.value); setPlatform('manual'); }} className="w-full bg-gray-50 border border-transparent focus:border-purple-500 rounded-xl py-2 px-3 text-xs font-bold outline-none" />
+                                    <label className="text-[9px] font-black text-gray-600 uppercase">Taxas (%)</label>
+                                    <input type="number" value={reverseTax} onChange={(e) => { setReverseTax(e.target.value); setPlatform('manual'); }} className="w-full bg-gray-50 border border-transparent focus:border-purple-500 rounded-xl py-2 px-3 text-xs font-bold text-gray-900 outline-none" />
                                 </div>
                             </div>
                             {reverseResult && (
