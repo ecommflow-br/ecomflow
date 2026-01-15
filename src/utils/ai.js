@@ -189,11 +189,12 @@ export const calculateWithAI = async (prompt) => {
     } else if (geminiKey) {
         const genAI = new GoogleGenerativeAI(geminiKey);
 
-        // Fallback list specifically for calculation
+        // Fallback list specifically for calculation - EXACT MATCH to generateWithGemini
         const modelsToTry = [
             "gemini-1.5-flash",
             "gemini-1.5-flash-latest",
             "gemini-1.5-pro",
+            "gemini-1.0-pro",
             "gemini-pro"
         ];
 
