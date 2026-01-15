@@ -20,12 +20,22 @@ const BaseResponseNode = ({ title, icon: Icon, color, content, onRemove }) => {
     const renderContent = (isFull = false) => {
         if (!content) return <span className="text-gray-300 italic">Processando...</span>;
 
+        if (Array.isArray(content)) {
+            return (
+                <ul className="list-disc pl-4 space-y-1">
+                    {content.map((item, i) => (
+                        <li key={i}>{typeof item === 'object' ? JSON.stringify(item) : item}</li>
+                    ))}
+                </ul>
+            );
+        }
+
         if (typeof content === 'object') {
             return (
                 <ul className="list-disc pl-4 space-y-1">
                     {Object.entries(content).map(([key, value]) => (
                         <li key={key}>
-                            <strong className="capitalize">{key.replace(/([A-Z])/g, ' $1')}:</strong>
+                            <strong className="capitalize">{key.replace(/([A-Z])/g, ' $1')}:</strong>{' '}
                             {typeof value === 'object' ? JSON.stringify(value, null, 2) : value}
                         </li>
                     ))}

@@ -17,7 +17,9 @@ export const generateProductContent = async (input, fileData, style = 'marketpla
 const getStylePrompt = (style, input) => {
     const basePrompt = `Analise este produto: "${input}". Aja como um especialista em e-commerce brasileiro.
     REGRA DE OURO: NÃO use emojis em excesso. O texto deve ser limpo e profissional. Evite usar muito negrito (**).
-    PROIBIDO: NUNCA use os termos "Atacado", "Varejo" ou "Atacado e Varejo".`;
+    PROIBIDO: NUNCA use os termos "Atacado", "Varejo" ou "Atacado e Varejo".
+    INSTRUÇÃO VISUAL: Se houver imagem, priorize o que vê nela. Ignore preços ou taxas mencionados no texto (isso é para outro sistema).
+    ESTRUTURA: 'extraDetails' deve ser um OBJETO { "chave": "valor" }, NUNCA uma lista ou array.`;
 
     if (style === 'elite') {
         return `${basePrompt}
