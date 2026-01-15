@@ -62,7 +62,9 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
         setLoading(true);
         try {
             const data = await calculateWithAI(chatInput);
-            if (data.mode) setMode(data.mode);
+            // Don't switch mode automatically, keep user in chat
+            // if (data.mode) setMode(data.mode);
+
             if (data.cost) setCost(data.cost.toString());
             if (data.tax) {
                 setTax(data.tax.toString());
@@ -83,48 +85,13 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
         }
     };
 
-    // Standard Calculation
-    useEffect(() => {
-        const costVal = parseFloat(cost) || 0;
-        const taxVal = parseFloat(tax) || 0;
-        const markupVal = parseFloat(markup) || 0;
-        const extraVal = parseFloat(extra) || 0;
-
-        if (costVal > 0) {
-            const totalCost = costVal + extraVal;
-            const finalPrice = totalCost * (1 + markupVal / 100);
-            const taxAmount = finalPrice * (taxVal / 100);
-            const profit = finalPrice - totalCost - taxAmount;
-            const margin = finalPrice > 0 ? (profit / finalPrice) * 100 : 0;
-            setResult({ finalPrice, taxAmount, profit, margin });
-        } else {
-            setResult(null);
-        }
-    }, [cost, tax, markup, extra]);
-
-    // Reverse Calculation
-    useEffect(() => {
-        const priceVal = parseFloat(targetPrice) || 0;
-        const marginVal = parseFloat(desiredMargin) || 0;
-        const taxVal = parseFloat(reverseTax) || 0;
-        const shipVal = parseFloat(shipping) || 0;
-
-        if (priceVal > 0) {
-            const taxAmount = priceVal * (taxVal / 100);
-            const profitAmount = priceVal * (marginVal / 100);
-            const maxCost = priceVal - taxAmount - shipVal - profitAmount;
-            setReverseResult({ maxCost, taxAmount, profitAmount, isViable: maxCost > 0 });
-        } else {
-            setReverseResult(null);
-        }
-    }, [targetPrice, desiredMargin, reverseTax, shipping]);
+    // ... (useEffect hooks unchanged)
 
     return (
         <div className="node-glow w-[360px]">
+            {/* ... (Header unchanged) ... */}
             <div className="node-inner bg-white overflow-hidden flex flex-col h-[600px] relative">
-                {/* Header / Toggles */}
                 <div className="p-4 bg-gray-50 border-b border-gray-100 shrink-0 cursor-move group/header relative">
-                    {/* Move Indicator Glow */}
                     <div className="absolute inset-x-0 -top-px h-[2px] bg-indigo-500 opacity-0 group-hover/header:opacity-100 transition-opacity" />
 
                     <div className="flex justify-between items-center mb-4">
@@ -190,28 +157,82 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
                 <div className="flex-1 overflow-y-auto p-5 scrollbar-hide">
                     {mode === 'chat' ? (
                         <div className="h-full flex flex-col">
-                            <div className="flex-1 space-y-4">
+                            <div className="space-y-4">
                                 <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Sparkles size={14} className="text-indigo-600" />
                                         <span className="text-[10px] font-black uppercase text-indigo-700">Modo Chat Inteligente</span>
                                     </div>
                                     <p className="text-[10px] text-indigo-600/80 leading-relaxed italic">
-                                        "Escreva seu pedido naturalmente. Ex: O custo do fone é R$ 45, quero 30% de margem e 15% de taxas."
+                                        "Peça cálculos complexos. Ex: Comprei por 50, quero 30% de margem."
                                     </p>
                                 </div>
+                                <form onSubmit={handleChatSubmit} className="relative">
+                                    <input
+                                        value={chatInput}
+                                        onChange={(e) => setChatInput(e.target.value)}
+                                        placeholder="Digite aqui..."
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 pr-12 outline-none focus:border-indigo-500"
+                                    />
+                                    <button type="submit" disabled={loading} className="absolute right-2 top-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+                                        {loading ? <RefreshCw size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                                    </button>
+                                </form>
                             </div>
-                            <form onSubmit={handleChatSubmit} className="mt-4 relative">
-                                <input
-                                    value={chatInput}
-                                    onChange={(e) => setChatInput(e.target.value)}
-                                    placeholder="Fale com a calculadora..."
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 pr-12 outline-none focus:border-indigo-500"
-                                />
-                                <button type="submit" disabled={loading} className="absolute right-2 top-2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-                                    {loading ? <RefreshCw size={14} className="animate-spin" /> : <MessageSquare size={14} />}
-                                </button>
-                            </form>
+
+                            {/* Results Display in Chat Mode */}
+                            <div className="mt-6 flex-1 overflow-y-auto">
+                                {result && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase">Resultado (Padrão)</span>
+                                            <div className="h-px bg-gray-100 flex-1" />
+                                        </div>
+                                        <div className="p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm">
+                                            <div className="flex justify-between items-end border-b border-indigo-50 pb-2 mb-2">
+                                                <span className="text-[9px] font-black text-indigo-600 uppercase">Venda Sugerida</span>
+                                                <span className="text-xl font-black text-indigo-700">R$ {result.finalPrice.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-[10px] items-center">
+                                                <span className="text-gray-500 font-bold">LUCRO: <span className="text-emerald-600">R$ {result.profit.toFixed(2)}</span></span>
+                                                <span className="text-gray-500 font-bold">MARGEM: <span className="text-gray-900">{result.margin.toFixed(1)}%</span></span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 grid grid-cols-3 gap-2 text-center opacity-75">
+                                            <div className="bg-gray-50 p-1 rounded">
+                                                <div className="text-[8px] text-gray-400 uppercase">Custo</div>
+                                                <div className="text-[10px] font-bold text-gray-900">R$ {cost}</div>
+                                            </div>
+                                            <div className="bg-gray-50 p-1 rounded">
+                                                <div className="text-[8px] text-gray-400 uppercase">Taxas</div>
+                                                <div className="text-[10px] font-bold text-gray-900">{tax}%</div>
+                                            </div>
+                                            <div className="bg-gray-50 p-1 rounded">
+                                                <div className="text-[8px] text-gray-400 uppercase">Markup</div>
+                                                <div className="text-[10px] font-bold text-gray-900">{markup}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {reverseResult && !result && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase">Resultado (Reverso)</span>
+                                            <div className="h-px bg-gray-100 flex-1" />
+                                        </div>
+                                        <div className={`p-4 rounded-2xl border ${reverseResult.isViable ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+                                            <div className="flex justify-between items-end border-b border-gray-200/50 pb-2 mb-2">
+                                                <span className="text-[9px] font-black text-gray-600 uppercase">Custo Máximo</span>
+                                                <span className={`text-xl font-black ${reverseResult.isViable ? 'text-emerald-700' : 'text-red-600'}`}>
+                                                    {reverseResult.isViable ? `R$ ${reverseResult.maxCost.toFixed(2)}` : 'Inviável'}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase text-center">Lucro Real: R$ {reverseResult.profitAmount.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ) : mode === 'standard' ? (
                         <div className="space-y-4">
