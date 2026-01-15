@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Copy, Check, Tally3, AlignLeft, Table, PlusCircle, Maximize2, X, Minimize2, Sparkles } from 'lucide-react';
+import { Copy, Check, Tally3, AlignLeft, Table, PlusCircle, Maximize2, X, Minimize2, Sparkles, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
+const BaseResponseNode = ({ title, icon: Icon, color, content, onRemove }) => {
     const [copied, setCopied] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleCopy = () => {
         if (!content) return;
-        // Copy logic simplified to handle objects
         const textToCopy = typeof content === 'object'
             ? Object.entries(content).map(([k, v]) => `${k}: ${v}`).join('\n')
             : content;
@@ -17,7 +16,6 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Helper to render content safely
     const renderContent = (isFull = false) => {
         if (!content) return <span className="text-gray-300 italic">Processando...</span>;
 
@@ -26,14 +24,15 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
                 <ul className="list-disc pl-4 space-y-1">
                     {Object.entries(content).map(([key, value]) => (
                         <li key={key}>
-                            <strong className="capitalize">{key.replace(/([A-Z])/g, ' $1')}:</strong> {value}
+                            <strong className="capitalize">{key.replace(/([A-Z])/g, ' $1')}:</strong>
+                            {typeof value === 'object' ? JSON.stringify(value, null, 2) : value}
                         </li>
                     ))}
                 </ul>
             );
         }
 
-        return content; // Editável futuramente? Por enquanto read-only
+        return content;
     };
 
     return (
@@ -45,13 +44,29 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
                             <Icon size={16} />
                             <span className="font-bold text-xs uppercase tracking-widest">{title}</span>
                         </div>
-                        <div className="flex gap-1">
-                            <button onClick={() => setIsExpanded(true)} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-indigo-600 transition-colors" title="Expandir (Zen Mode)">
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setIsExpanded(true)}
+                                className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-indigo-600 transition-colors"
+                                title="Expandir (Zen Mode)"
+                            >
                                 <Maximize2 size={14} />
                             </button>
-                            <button onClick={handleCopy} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-emerald-500 transition-colors">
+                            <button
+                                onClick={handleCopy}
+                                className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-emerald-500 transition-colors"
+                            >
                                 {copied ? <Check size={14} /> : <Copy size={14} />}
                             </button>
+                            {onRemove && (
+                                <button
+                                    onClick={onRemove}
+                                    className="p-1.5 hover:bg-red-50 rounded-md text-gray-400 hover:text-red-500 transition-colors"
+                                    title="Excluir Card"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -102,18 +117,18 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
     );
 };
 
-export const TitleNode = ({ data }) => (
-    <BaseResponseNode title="Título Sugerido" icon={Tally3} color="indigo" content={data.content || 'Aguardando...'} />
+export const TitleNode = ({ data, onRemove }) => (
+    <BaseResponseNode title="Título Sugerido" icon={Tally3} color="indigo" content={data.content || 'Aguardando...'} onRemove={onRemove} />
 );
 
-export const DescriptionNode = ({ data }) => (
-    <BaseResponseNode title="Descrição" icon={AlignLeft} color="purple" content={data.content || 'Aguardando...'} />
+export const DescriptionNode = ({ data, onRemove }) => (
+    <BaseResponseNode title="Descrição" icon={AlignLeft} color="purple" content={data.content || 'Aguardando...'} onRemove={onRemove} />
 );
 
-export const SizeTableNode = ({ data }) => (
-    <BaseResponseNode title="Tabela de Tamanhos" icon={Table} color="blue" content={data.content || 'Aguardando...'} />
+export const SizeTableNode = ({ data, onRemove }) => (
+    <BaseResponseNode title="Tabela de Tamanhos" icon={Table} color="blue" content={data.content || 'Aguardando...'} onRemove={onRemove} />
 );
 
-export const ExtraNode = ({ data }) => (
-    <BaseResponseNode title="Extra / Info" icon={PlusCircle} color="pink" content={data.content || 'Aguardando...'} />
+export const ExtraNode = ({ data, onRemove }) => (
+    <BaseResponseNode title="Extra / Info" icon={PlusCircle} color="pink" content={data.content || 'Aguardando...'} onRemove={onRemove} />
 );

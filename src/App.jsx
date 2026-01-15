@@ -8,6 +8,7 @@ import SettingsModal from './components/SettingsModal';
 import Login from './components/Login';
 import { Calculator, Settings, Workflow, LogOut } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
+import SecurityShield from './components/SecurityShield';
 
 function Navigation({ user }) {
     const location = useLocation();
@@ -115,6 +116,7 @@ function App() {
 
     return (
         <ErrorBoundary>
+            <SecurityShield />
             <BrowserRouter>
                 <div className="min-h-screen w-full relative bg-[#f5f5f7]">
                     <Navigation user={user} />

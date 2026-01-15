@@ -9,51 +9,7 @@ import { generateProductContent } from '../utils/ai';
 import { generateSKU } from '../utils/skuGenerator';
 import { Sparkles, ZoomIn, ZoomOut, Lock, Unlock, RotateCcw, Box, History, Calculator as CalcIcon, Plus } from 'lucide-react';
 
-const ConnectionLine = ({ fromRef, toRef, zoom }) => {
-    // ... (unchanged logic)
-    const [path, setPath] = useState('');
-    const updatePath = () => {
-        try {
-            if (fromRef.current && toRef.current) {
-                const fromRect = fromRef.current.getBoundingClientRect();
-                const toRect = toRef.current.getBoundingClientRect();
-                if (fromRect.width === 0 || toRect.width === 0) return;
-                const startX = fromRect.left + fromRect.width / 2;
-                const startY = fromRect.top + fromRect.height / 2;
-                const endX = toRect.left + toRect.width / 2;
-                const endY = toRect.top + toRect.height / 2;
-                if (!Number.isFinite(startX) || !Number.isFinite(endX)) return;
-                const controlY = startY + (endY - startY) / 2;
-                setPath(`M ${startX} ${startY} C ${startX} ${controlY}, ${endX} ${controlY}, ${endX} ${endY}`);
-            }
-        } catch (error) {
-            console.warn("Connection line calc error:", error);
-        }
-    };
-    useEffect(() => {
-        const interval = setInterval(updatePath, 33);
-        window.addEventListener('resize', updatePath);
-        window.addEventListener('scroll', updatePath);
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('resize', updatePath);
-            window.removeEventListener('scroll', updatePath);
-        };
-    }, [zoom]);
-    return (
-        <motion.path
-            d={path}
-            fill="none"
-            stroke="url(#neonGradient)"
-            strokeWidth={3 * zoom}
-            strokeLinecap="round"
-            filter="url(#glow)"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.6 }}
-            transition={{ duration: 0.5 }}
-        />
-    );
-};
+import ConnectionLine from './ConnectionLine';
 
 const FlowCanvas = () => {
     const [loading, setLoading] = useState(false);
@@ -62,6 +18,7 @@ const FlowCanvas = () => {
     const [zoom, setZoom] = useState(1);
     const [isLocked, setIsLocked] = useState(false);
     const [calculators, setCalculators] = useState([]);
+    const [removedNodes, setRemovedNodes] = useState([]); // Track dismissed response node types
 
     // History State
     const [history, setHistory] = useState(() => {
@@ -77,8 +34,20 @@ const FlowCanvas = () => {
     const extraRef = useRef(null);
     const priceRef = useRef(null);
 
+    // Monitor performance
+    useEffect(() => {
+        const nodeCount = calculators.length + (result ? (5 - removedNodes.length) : 0);
+        if (nodeCount > 15) {
+            // Subtle alert for performance
+            window.dispatchEvent(new CustomEvent('app-toast', {
+                detail: { message: "Muitos cards ativos podem impactar a performance. Considere limpar o fluxo.", type: 'warning' }
+            }));
+        }
+    }, [calculators.length, result, removedNodes.length]);
+
     const handleGenerate = async (text, file, tone) => {
         setLoading(true);
+        setRemovedNodes([]); // Reset dismissals on new generation
         try {
             const content = await generateProductContent(text, file, tone);
             setResult(content);
@@ -102,6 +71,19 @@ const FlowCanvas = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleNewFlow = () => {
+        if (confirm('Deseja iniciar um novo fluxo? Isso limpará o canvas atual.')) {
+            setResult(null);
+            setSku(null);
+            setCalculators([]);
+            setRemovedNodes([]);
+        }
+    };
+
+    const handleRemoveResponseNode = (type) => {
+        setRemovedNodes(prev => [...prev, type]);
     };
 
     const handleAddCalculator = (x = 50, y = 300) => {
@@ -161,11 +143,11 @@ const FlowCanvas = () => {
 
             {result && !loading && (
                 <svg className="fixed inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
-                    <ConnectionLine fromRef={inputRef} toRef={titleRef} zoom={zoom} />
-                    <ConnectionLine fromRef={inputRef} toRef={descRef} zoom={zoom} />
-                    <ConnectionLine fromRef={inputRef} toRef={sizeRef} zoom={zoom} />
-                    <ConnectionLine fromRef={inputRef} toRef={extraRef} zoom={zoom} />
-                    <ConnectionLine fromRef={inputRef} toRef={priceRef} zoom={zoom} />
+                    {!removedNodes.includes('title') && <ConnectionLine fromRef={inputRef} toRef={titleRef} zoom={zoom} />}
+                    {!removedNodes.includes('desc') && <ConnectionLine fromRef={inputRef} toRef={descRef} zoom={zoom} />}
+                    {!removedNodes.includes('size') && <ConnectionLine fromRef={inputRef} toRef={sizeRef} zoom={zoom} />}
+                    {!removedNodes.includes('extra') && <ConnectionLine fromRef={inputRef} toRef={extraRef} zoom={zoom} />}
+                    {!removedNodes.includes('price') && <ConnectionLine fromRef={inputRef} toRef={priceRef} zoom={zoom} />}
                 </svg>
             )}
 
@@ -217,32 +199,58 @@ const FlowCanvas = () => {
 
                 {result && !loading && (
                     <>
-                        <motion.div ref={titleRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[5%] top-[400px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
-                            <TitleNode data={{ content: result.title }} />
-                            {sku && (
-                                <div className="absolute -top-3 -right-3 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-gray-700 flex items-center gap-1">
-                                    <Box size={10} className="text-indigo-400" /> SKU: {sku}
-                                </div>
-                            )}
-                        </motion.div>
+                        {!removedNodes.includes('title') && (
+                            <motion.div ref={titleRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[5%] top-[400px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
+                                <TitleNode data={{ content: result.title }} onRemove={() => handleRemoveResponseNode('title')} />
+                                {sku && (
+                                    <div className="absolute -top-3 -right-3 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-gray-700 flex items-center gap-1">
+                                        <Box size={10} className="text-indigo-400" /> SKU: {sku}
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
 
-                        <motion.div ref={descRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[25%] top-[550px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
-                            <DescriptionNode data={{ content: result.description }} />
-                        </motion.div>
+                        {!removedNodes.includes('desc') && (
+                            <motion.div ref={descRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[25%] top-[550px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
+                                <DescriptionNode data={{ content: result.description }} onRemove={() => handleRemoveResponseNode('desc')} />
+                            </motion.div>
+                        )}
 
-                        <motion.div ref={sizeRef} drag={!isLocked} dragMomentum={false} className={`absolute right-[25%] top-[400px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
-                            <SizeTableNode data={{ content: result.sizeTable }} />
-                        </motion.div>
+                        {!removedNodes.includes('size') && (
+                            <motion.div ref={sizeRef} drag={!isLocked} dragMomentum={false} className={`absolute right-[25%] top-[400px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
+                                <SizeTableNode data={{ content: result.sizeTable }} onRemove={() => handleRemoveResponseNode('size')} />
+                            </motion.div>
+                        )}
 
-                        <motion.div ref={extraRef} drag={!isLocked} dragMomentum={false} className={`absolute right-[5%] top-[550px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
-                            <ExtraNode data={{ content: result.extraDetails }} />
-                        </motion.div>
+                        {!removedNodes.includes('extra') && (
+                            <motion.div ref={extraRef} drag={!isLocked} dragMomentum={false} className={`absolute right-[5%] top-[550px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
+                                <ExtraNode data={{ content: result.extraDetails }} onRemove={() => handleRemoveResponseNode('extra')} />
+                            </motion.div>
+                        )}
 
-                        <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left-1/2 -translate-x-1/2 top-[480px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
-                            <MiniPriceNode />
-                        </motion.div>
+                        {!removedNodes.includes('price') && (
+                            <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left-1/2 -translate-x-1/2 top-[480px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
+                                <MiniPriceNode onRemove={() => handleRemoveResponseNode('price')} />
+                            </motion.div>
+                        )}
                     </>
                 )}
+
+                {/* PERFORMANCE WARNING BANNER */}
+                <AnimatePresence>
+                    {(calculators.length + (result ? (5 - removedNodes.length) : 0)) > 15 && (
+                        <motion.div
+                            initial={{ y: -50, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -50, opacity: 0 }}
+                            className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-xs font-bold"
+                        >
+                            <Sparkles size={14} className="text-amber-500" />
+                            Site Pesado: Considere iniciar um "Novo Fluxo" para manter a velocidade.
+                            <button onClick={() => setRemovedNodes(prev => [...prev, 'warning'])} className="ml-2 hover:bg-amber-100 p-1 rounded-full"><X size={12} /></button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {!result && !loading && calculators.length === 0 && (
                     <div className="absolute top-[450px] left-1/2 -translate-x-1/2 text-center text-gray-400 max-w-md pointer-events-none">
@@ -295,6 +303,7 @@ const FlowCanvas = () => {
                 history={history}
                 onRestore={handleRestore}
                 onClear={handleClearHistory}
+                onNewFlow={handleNewFlow}
             />
         </div>
     );

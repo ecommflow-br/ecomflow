@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ArrowRight, TrendingUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { DollarSign, Trash2, PlusCircle } from 'lucide-react';
 
-const MiniPriceNode = () => {
+const MiniPriceNode = ({ onRemove }) => {
     const [mode, setMode] = useState('standard'); // 'standard' or 'reverse'
     const [cost, setCost] = useState('');
     const [margin, setMargin] = useState(30);
@@ -32,6 +31,25 @@ const MiniPriceNode = () => {
     return (
         <div className="node-glow w-[320px] z-50">
             <div className="node-inner p-5 shadow-2xl relative bg-white overflow-hidden">
+                {/* Header Action Row */}
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2 text-gray-800">
+                        <DollarSign size={18} className={mode === 'standard' ? 'text-emerald-500' : 'text-purple-500'} />
+                        <span className="font-bold text-xs tracking-wider uppercase">
+                            {mode === 'standard' ? 'Margem sobre Custo' : 'Custo Máximo'}
+                        </span>
+                    </div>
+                    {onRemove && (
+                        <button
+                            onClick={onRemove}
+                            className="p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition-colors"
+                            title="Excluir Card"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    )}
+                </div>
+
                 {/* Mode Toggle */}
                 <div className="flex bg-gray-100 p-1 rounded-xl mb-5">
                     <button
@@ -46,13 +64,6 @@ const MiniPriceNode = () => {
                     >
                         Reverso
                     </button>
-                </div>
-
-                <div className="flex items-center gap-2 mb-4 text-gray-800">
-                    <DollarSign size={18} className={mode === 'standard' ? 'text-emerald-500' : 'text-purple-500'} />
-                    <span className="font-bold text-xs tracking-wider uppercase">
-                        {mode === 'standard' ? 'Margem sobre Custo' : 'Custo Máximo Permitido'}
-                    </span>
                 </div>
 
                 <div className="space-y-4">
@@ -123,10 +134,13 @@ const MiniPriceNode = () => {
                     </div>
                 </div>
 
-                <Link to="/calculator" className="mt-5 flex items-center justify-center gap-2 w-full py-3 bg-gray-50 text-gray-500 rounded-xl font-bold text-[10px] uppercase hover:bg-gray-100 transition-colors tracking-widest">
-                    <TrendingUp size={14} />
-                    Calculadora Completa
-                </Link>
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('add-calculator'))}
+                    className="mt-5 flex items-center justify-center gap-2 w-full py-3 bg-indigo-50 text-indigo-600 rounded-xl font-bold text-[10px] uppercase hover:bg-indigo-100 transition-colors tracking-widest"
+                >
+                    <PlusCircle size={14} />
+                    Abrir Calculadora Flow
+                </button>
             </div>
         </div>
     );

@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Trash2, ArrowRight } from 'lucide-react';
+import { X, Clock, Trash2, ArrowRight, Sparkles } from 'lucide-react';
 
-const HistorySidebar = ({ isOpen, onClose, history, onRestore, onClear }) => {
+const HistorySidebar = ({ isOpen, onClose, history, onRestore, onClear, onNewFlow }) => {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -25,13 +25,22 @@ const HistorySidebar = ({ isOpen, onClose, history, onRestore, onClear }) => {
                         className="fixed right-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-50 flex flex-col border-l border-gray-100"
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <div className="flex items-center gap-2 text-indigo-600">
-                                <Clock size={20} />
-                                <h2 className="font-bold text-lg">Histórico</h2>
+                        <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-2 text-indigo-600">
+                                    <Clock size={20} />
+                                    <h2 className="font-bold text-lg">Histórico</h2>
+                                </div>
+                                <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                                    <X size={20} className="text-gray-500" />
+                                </button>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-                                <X size={20} className="text-gray-500" />
+
+                            <button
+                                onClick={() => { onNewFlow(); onClose(); }}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all font-bold text-sm"
+                            >
+                                <Sparkles size={16} /> Novo Fluxo (Limpar)
                             </button>
                         </div>
 
