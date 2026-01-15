@@ -110,12 +110,12 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     Analise a descrição ou imagem do produto: "${input}"
     
     Gere um JSON LIMPO (SEM EMOJIS, TOTALMENTE EM PORTUGUÊS) com:
-    - title: Título otimizado para SEO nacional.
+    - title: Título nacional otimizado para SEO.
     - description: Descrição vendedora completa com bullets técnicos.
     - sizeTable: Tabela de medidas sugerida.
     - extraDetails: Objeto com "Dicas", "Observações", "Conteúdo da Embalagem".
 
-    IMPORTANTE: Retorne APENAS o JSON. Sem textos antes ou depois.
+    IMPORTANTE: Retorne APENAS o JSON. Sem textos explicativos.
     `;
 
     try {
@@ -123,20 +123,40 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
         if (fileData) {
             const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
             const base64Data = fileData.split(',')[1];
+
             result = await model.generateContent([
                 prompt,
-                { inlineData: { data: base64Data, mimeType: mimeType } }
+                {
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: mimeType
+                    }
+                }
             ]);
         } else {
             result = await model.generateContent(prompt);
         }
 
         const response = await result.response;
-        return parseAIResponse(response.text());
+        const text = response.text();
+        return parseAIResponse(text);
     } catch (error) {
-        console.error("Gemini API Error:", error);
-        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Tente novamente em 1-2 minutos ou use OpenAI.");
-        if (error.message?.includes("403")) throw new Error("Chave Gemini INVÁLIDA ou bloqueada por segurança. Verifique no AI Studio.");
+        console.error("Gemini API Error Detail:", error);
+
+        if (error.message?.includes("404")) {
+            try {
+                // Tenta o Flash 1.5 denovo mas com string explicita de fallback ou Pro
+                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+                const res = await fallbackModel.generateContent(prompt);
+                return parseAIResponse(res.response.text());
+            } catch (fallbackError) {
+                throw new Error("Modelo Gemini não encontrado. Verifique se sua chave tem acesso ao Gemini 1.5 Flash no AI Studio.");
+            }
+        }
+
+        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Aguarde 30 segundos ou use OpenAI.");
+        if (error.message?.includes("403")) throw new Error("Chave Gemini INVÁLIDA ou vazada. Crie uma nova no AI Studio.");
+
         throw error;
     }
 };
