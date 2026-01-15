@@ -104,35 +104,33 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const toneInst = getToneInstruction(tone);
 
-    // Lista de modelos na ordem exata de IDs técnicos da API
-    // Obs: No AI Studio as vezes aparece 2.5 mas o ID é 2.0-flash ou 2.0-flash-lite
+    // Priorizando o NOVO modelo 2.5 Flash como solicitado pelo usuário
     const modelsToTry = [
-        "gemini-2.0-flash",       // Versão estável mais recente
-        "gemini-2.0-flash-exp",   // Frequentemente o que aparece como "2.x" no painel
-        "gemini-1.5-flash",       // Backup estável
-        "gemini-2.0-flash-lite-preview-0205", // Nova versão lite (fevereiro/2026)
-        "gemini-2.5-flash"        // Nome hipotético solicitado
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-2.0-flash-exp"
     ];
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. ${toneInst}
     Analise o produto: "${input}"
     
-    Retorne APENAS um JSON (SEM EMOJIS, PORTUGUÊS):
+    Retorne APENAS um JSON (PORTUGUÊS, SEM EMOJIS):
     - title: Título SEO.
-    - description: Descrição vendedora com bullets.
+    - description: Descrição vendedora (bullets).
     - sizeTable: Tabela.
-    - extraDetails: Objeto com Dicas, Observações, Embalagem.
+    - extraDetails: Objeto (Observations, Packaging, Shipping).
     `;
 
-    let errors = [];
+    let lastErrorMsg = "";
 
     for (const modelName of modelsToTry) {
         try {
-            console.log(`Tentando Gemini: ${modelName}`);
+            console.log(`EcomFlow: Tentando se conectar ao modelo ${modelName}...`);
             const model = genAI.getGenerativeModel({ model: modelName });
-
             let result;
+
             if (fileData) {
                 const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
                 const base64Data = fileData.split(',')[1];
@@ -147,16 +145,12 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
             const response = await result.response;
             return parseAIResponse(response.text());
         } catch (error) {
-            console.warn(`Erro no ${modelName}:`, error.message);
-
-            // Se for cota ou chave, não tenta os outros
-            if (error.status === 403 || error.status === 429 || error.message?.includes("API key")) {
-                throw error;
-            }
-
-            errors.push(`${modelName}: ${error.message}`);
+            console.warn(`EcomFlow: Falha no ${modelName}:`, error.message);
+            lastErrorMsg = error.message;
+            if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Aguarde 30 segundos.");
+            if (error.message?.includes("403")) throw new Error("Chave Gemini inválida ou vazada. Verifique no AI Studio.");
         }
     }
 
-    throw new Error(`Falha no Google: Verifique se sua chave tem acesso aos modelos Flash no AI Studio. Detalhes: ${errors.join(" | ")}`);
+    throw new Error(`O Google não encontrou o modelo 2.5/2.0/1.5 na sua conta. Erro retornado: ${lastErrorMsg}`);
 };
