@@ -6,7 +6,8 @@ import { auth, db } from './utils/firebase';
 import FlowCanvas from './components/FlowCanvas';
 import SettingsModal from './components/SettingsModal';
 import Login from './components/Login';
-import { Calculator, Settings, Workflow, LogOut } from 'lucide-react';
+import ToolsHub from './components/ToolsHub';
+import { Calculator, Settings, Workflow, LogOut, Wrench } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import SecurityShield from './components/SecurityShield';
 
@@ -33,6 +34,15 @@ function Navigation({ user }) {
                     <Workflow size={18} />
                     <span className="font-medium text-sm text-nowrap">AI Flow Canvas</span>
                 </Link>
+
+                <Link
+                    to="/tools"
+                    className={`flex items-center gap-2 px-6 py-2 rounded-xl transition-all ${location.pathname === '/tools' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-gray-600 hover:bg-black/5'}`}
+                >
+                    <Wrench size={18} />
+                    <span className="font-medium text-sm text-nowrap">Estúdio Flow</span>
+                </Link>
+
                 <div className="w-px h-6 bg-gray-200 mx-1" />
                 <button
                     onClick={triggerAddCalculator}
@@ -64,7 +74,6 @@ function Navigation({ user }) {
 }
 
 function App() {
-    // ... (rest of App component stays the same, removing ProfitCalculator route)
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -123,6 +132,7 @@ function App() {
                     <main className="w-full pt-28 pb-12">
                         <Routes>
                             <Route path="/" element={<FlowCanvas />} />
+                            <Route path="/tools" element={<ToolsHub />} />
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
                     </main>
