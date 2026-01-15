@@ -106,6 +106,8 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
 
     // Priorizando o NOVO modelo 2.5 Flash como solicitado pelo usuário
     const modelsToTry = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
         "gemini-1.5-flash",
         "gemini-1.5-flash-latest",
         "gemini-1.5-pro",
@@ -191,6 +193,8 @@ export const calculateWithAI = async (prompt) => {
 
         // Fallback list specifically for calculation - EXACT MATCH to generateWithGemini
         const modelsToTry = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
             "gemini-1.5-flash",
             "gemini-1.5-flash-latest",
             "gemini-1.5-pro",
