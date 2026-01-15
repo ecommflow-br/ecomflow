@@ -104,8 +104,14 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const toneInst = getToneInstruction(tone);
 
-    // Lista de modelos para tentar (Prioridade 2.0 Flash)
-    const modelsToTry = ["gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash"];
+    // Lista exaustiva incluindo a versão citada pelo usuário e variações comuns
+    const modelsToTry = [
+        "gemini-2.5-flash", // Nome citado pelo usuário (se existir no tier dele)
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest"
+    ];
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. ${toneInst}
@@ -120,10 +126,14 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     IMPORTANTE: Retorne APENAS o JSON. Sem textos explicativos.
     `;
 
+    let lastError = null;
+
     for (const modelName of modelsToTry) {
         try {
+            console.log(`Tentando Gemini Modelo: ${modelName}`);
             const model = genAI.getGenerativeModel({ model: modelName });
             let result;
+
             if (fileData) {
                 const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
                 const base64Data = fileData.split(',')[1];
@@ -138,17 +148,16 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
             const response = await result.response;
             return parseAIResponse(response.text());
         } catch (error) {
-            console.warn(`Falha ao tentar modelo ${modelName}:`, error.message);
-            // Se o erro for de cota ou chave vazada, não adianta tentar outro modelo
+            lastError = error;
+            console.warn(`Falha no modelo ${modelName}:`, error.message);
+
+            // Se for erro de quota ou chave bloqueada, para por aqui
             if (error.message?.includes("429") || error.message?.includes("403")) {
                 throw error;
             }
-            // Se for o último modelo da lista e der 404, aí sim jogamos o erro final
-            if (modelName === modelsToTry[modelsToTry.length - 1]) {
-                throw new Error("Nenhum modelo Gemini compatível encontrado. Verifique seu acesso no AI Studio.");
-            }
-            // Caso contrário, continua para o próximo loop (próximo modelo)
-            continue;
+            // Continua para o próximo modelo se for 404
         }
     }
+
+    throw new Error(`Falha Total: Nenhum modelo (incluindo o 2.5/2.0/1.5) foi encontrado. Mensagem do Google: ${lastError?.message || "Desconhecida"}`);
 };
