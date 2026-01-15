@@ -1,4 +1,3 @@
-```javascript
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InputNode from '../nodes/InputNode';
@@ -36,7 +35,7 @@ const ConnectionLine = ({ fromRef, toRef, zoom }) => {
 
                 // Curva de Bezier suave
                 const controlY = startY + (endY - startY) / 2;
-                setPath(`M ${ startX } ${ startY } C ${ startX } ${ controlY }, ${ endX } ${ controlY }, ${ endX } ${ endY } `);
+                setPath(`M ${startX} ${startY} C ${startX} ${controlY}, ${endX} ${controlY}, ${endX} ${endY} `);
             }
         } catch (error) {
             // Silently fail on calc errors to avoid breaking the app
@@ -105,7 +104,7 @@ const FlowCanvas = () => {
             }
         } catch (error) {
             console.error(error);
-            alert(`Erro na Geração: ${ error.message } `);
+            alert(`Erro na Geração: ${error.message} `);
         } finally {
             setLoading(false);
         }
@@ -157,7 +156,7 @@ const FlowCanvas = () => {
                     ref={inputRef}
                     drag={!isLocked}
                     dragMomentum={false}
-                    className={`absolute left - [calc(50 % -170px)] top - 10 z - 30 w - [340px] ${ isLocked ? 'cursor-default' : 'cursor-move active:cursor-grabbing' } `}
+                    className={`absolute left - [calc(50 % -170px)] top - 10 z - 30 w - [340px] ${isLocked ? 'cursor-default' : 'cursor-move active:cursor-grabbing'} `}
                 >
                     <InputNode onGenerate={handleGenerate} />
                 </motion.div>
@@ -181,7 +180,7 @@ const FlowCanvas = () => {
                 {/* Results - Draggable "Flow" Layout */}
                 {result && !loading && (
                     <>
-                        <motion.div ref={titleRef} drag={!isLocked} dragMomentum={false} className={`absolute left - [5 %] top - [400px] z - 20 hover: z - 50 ${ isLocked ? '' : 'cursor-move active:cursor-grabbing' } `}>
+                        <motion.div ref={titleRef} drag={!isLocked} dragMomentum={false} className={`absolute left - [5 %] top - [400px] z - 20 hover: z - 50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'} `}>
                             <TitleNode data={{ content: result.title }} />
                             {/* SKU Badge attached to Title */}
                             {sku && (
@@ -191,20 +190,20 @@ const FlowCanvas = () => {
                             )}
                         </motion.div>
 
-                        <motion.div ref={descRef} drag={!isLocked} dragMomentum={false} className={`absolute left - [25 %] top - [550px] z - 20 hover: z - 50 ${ isLocked ? '' : 'cursor-move active:cursor-grabbing' } `}>
+                        <motion.div ref={descRef} drag={!isLocked} dragMomentum={false} className={`absolute left - [25 %] top - [550px] z - 20 hover: z - 50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'} `}>
                             <DescriptionNode data={{ content: result.description }} />
                         </motion.div>
 
-                        <motion.div ref={sizeRef} drag={!isLocked} dragMomentum={false} className={`absolute right - [25 %] top - [400px] z - 20 hover: z - 50 ${ isLocked ? '' : 'cursor-move active:cursor-grabbing' } `}>
+                        <motion.div ref={sizeRef} drag={!isLocked} dragMomentum={false} className={`absolute right - [25 %] top - [400px] z - 20 hover: z - 50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'} `}>
                             <SizeTableNode data={{ content: result.sizeTable }} />
                         </motion.div>
 
-                        <motion.div ref={extraRef} drag={!isLocked} dragMomentum={false} className={`absolute right - [5 %] top - [550px] z - 20 hover: z - 50 ${ isLocked ? '' : 'cursor-move active:cursor-grabbing' } `}>
+                        <motion.div ref={extraRef} drag={!isLocked} dragMomentum={false} className={`absolute right - [5 %] top - [550px] z - 20 hover: z - 50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'} `}>
                             <ExtraNode data={{ content: result.extraDetails }} />
                         </motion.div>
 
                         {/* Mini Price Node (Instead of just a button) */}
-                        <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left - [calc(50 % -150px)] top - [480px] z - 20 hover: z - 50 ${ isLocked ? '' : 'cursor-move active:cursor-grabbing' } `}>
+                        <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left - [calc(50 % -150px)] top - [480px] z - 20 hover: z - 50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'} `}>
                             <MiniPriceNode />
                         </motion.div>
                     </>
@@ -236,7 +235,7 @@ const FlowCanvas = () => {
                 <div className="w-px h-6 bg-gray-200 mx-2" />
                 <button
                     onClick={() => setIsLocked(!isLocked)}
-                    className={`p - 2 rounded - lg transition - all flex items - center gap - 2 px - 3 ${ isLocked ? 'bg-indigo-100 text-indigo-600' : 'hover:bg-gray-100 text-gray-600' } `}
+                    className={`p - 2 rounded - lg transition - all flex items - center gap - 2 px - 3 ${isLocked ? 'bg-indigo-100 text-indigo-600' : 'hover:bg-gray-100 text-gray-600'} `}
                     title={isLocked ? "Desbloquear Tela" : "Travar Tela"}
                 >
                     {isLocked ? <Lock size={18} /> : <Unlock size={18} />}
