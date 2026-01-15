@@ -206,16 +206,22 @@ export const calculateWithAI = async (prompt) => {
 
         for (const modelName of modelsToTry) {
             try {
-                const model = genAI.getGenerativeModel({ model: modelName });
+                // Configuração otimizada para JSON (funciona no 1.5 Flash/Pro)
+                const modelConfig = { model: modelName };
+                if (modelName.includes("1.5") || modelName.includes("2.")) {
+                    modelConfig.generationConfig = { responseMimeType: "application/json" };
+                }
+
+                const model = genAI.getGenerativeModel(modelConfig);
                 const result = await model.generateContent(`${systemPrompt}\n\nTexto do usuário: ${prompt}`);
                 const response = await result.response;
                 return parseAIResponse(response.text());
             } catch (error) {
-                console.warn(`EcomFlow Calc: Falha no ${modelName}:`, error.message);
+                console.warn(`EcomFlow Calc: Falha no modelo ${modelName}. Tentando próximo... Erro:`, error.message);
                 lastErrorMsg = error.message;
             }
         }
-        throw new Error(`Erro ao calcular com IA (Modelos indisponíveis): ${lastErrorMsg}`);
+        throw new Error(`Não foi possível calcular. Todos os modelos falharam. Último erro: ${lastErrorMsg}`);
 
     } else {
         throw new Error("API Key não configurada.");
