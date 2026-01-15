@@ -45,11 +45,19 @@ const FlowCanvas = () => {
         }
     }, [calculators.length, result, removedNodes.length]);
 
-    const handleGenerate = async (text, file, tone) => {
+    const handleGenerate = async (text, file, style) => {
         setLoading(true);
-        setRemovedNodes([]); // Reset dismissals on new generation
+        setRemovedNodes([]);
         try {
-            const content = await generateProductContent(text, file, tone);
+            // Parallel generation: Content + Price Extraction
+            const [content, calcData] = await Promise.all([
+                generateProductContent(text, file, style),
+                calculateWithAI(text, file).catch(e => {
+                    console.warn("Pricing Extraction Failed:", e);
+                    return null;
+                })
+            ]);
+
             setResult(content);
             const generatedSku = content.title ? generateSKU(content.title) : null;
             setSku(generatedSku);
@@ -64,6 +72,15 @@ const FlowCanvas = () => {
             const updatedHistory = [newEntry, ...history].slice(0, 20);
             setHistory(updatedHistory);
             localStorage.setItem('ecomflow_history', JSON.stringify(updatedHistory));
+
+            // Auto-spawn calculator if AI found pricing data
+            if (calcData && (calcData.cost > 0 || calcData.targetPrice > 0)) {
+                // Position it slightly offset from the center or price node
+                handleAddCalculator(50, 650, calcData);
+                window.dispatchEvent(new CustomEvent('app-toast', {
+                    detail: { message: "Calculadora iniciada com valores detectados!", type: 'success' }
+                }));
+            }
 
         } catch (error) {
             console.error(error);
@@ -86,11 +103,12 @@ const FlowCanvas = () => {
         setRemovedNodes(prev => [...prev, type]);
     };
 
-    const handleAddCalculator = (x = 50, y = 300) => {
+    const handleAddCalculator = (x = 50, y = 300, initialData = null) => {
         setCalculators(prev => [...prev, {
             id: Date.now(),
             x: x + (prev.length * 20),
-            y: y + (prev.length * 20)
+            y: y + (prev.length * 20),
+            initialData // Pass extracted data
         }]);
     };
 
@@ -178,6 +196,7 @@ const FlowCanvas = () => {
                         <CalculatorNode
                             onRemove={() => handleRemoveCalculator(calc.id)}
                             onAdd={handleAddCalculator}
+                            initialData={calc.initialData}
                         />
                     </motion.div>
                 ))}

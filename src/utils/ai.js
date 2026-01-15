@@ -290,15 +290,16 @@ const generateWithGemini = async (apiKey, input, fileData, style) => {
     throw new Error(`O Google não encontrou nenhum modelo compatível (1.5 Flash/Pro). Erro: ${lastErrorMsg}`);
 };
 
-export const calculateWithAI = async (prompt) => {
+export const calculateWithAI = async (prompt, fileData) => {
     const openAiKey = localStorage.getItem("openai_api_key")?.trim();
     const geminiKey = localStorage.getItem("gemini_api_key")?.trim();
 
     const systemPrompt = `Você é um assistente de precificação de e-commerce.
-    Analise o texto do usuário e extraia os valores para um cálculo de lucro.
+    Analise o texto e a imagem (se houver) para identificar valores numéricos.
+    Se encontrar um preço na imagem (etiqueta, valor na tela), use-o como "cost" ou "targetPrice" dependendo do contexto.
     Retorne APENAS um JSON válido seguindo este modelo:
     {
-        "cost": 0, (custo do produto)
+        "cost": 0, (custo do produto identificado)
         "tax": 0, (porcentagem de impostos/taxas)
         "markup": 0, (porcentagem de lucro sobre custo - Modo Padrão)
         "extra": 0, (custos extras fixos)
@@ -307,29 +308,36 @@ export const calculateWithAI = async (prompt) => {
         "shipping": 0, (custo de frete - Modo Reverso)
         "mode": "standard" | "reverse" (determine o melhor modo baseado no pedido)
     }
-    Se o usuário não mencionar um valor, use 0. Se ele quiser saber o preço a partir do custo, use "standard". Se ele der um preço de venda e quiser saber o custo máximo ou lucro, use "reverse".`;
+    Se não encontrar valores, use 0. Priorize valores visíveis na imagem.`;
 
     if (openAiKey) {
         const openai = new OpenAI({ apiKey: openAiKey, dangerouslyAllowBrowser: true });
+        const messages = [
+            { role: "system", content: systemPrompt },
+            {
+                role: "user",
+                content: [
+                    { type: "text", text: prompt || "Analise a imagem em busca de preços." },
+                    fileData ? { type: "image_url", image_url: { url: fileData } } : null
+                ].filter(Boolean)
+            }
+        ];
+
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: prompt }
-            ],
+            messages,
             response_format: { type: "json_object" }
         });
         return parseAIResponse(response.choices[0].message.content);
+
     } else if (geminiKey) {
         const genAI = new GoogleGenerativeAI(geminiKey);
 
         const modelsToTry = [
             "gemini-2.5-flash",
             "gemini-2.0-flash",
-            "gemini-1.5-flash",
             "gemini-1.5-flash-latest",
             "gemini-1.5-pro",
-            "gemini-1.0-pro",
             "gemini-pro"
         ];
 
@@ -337,22 +345,30 @@ export const calculateWithAI = async (prompt) => {
 
         for (const modelName of modelsToTry) {
             try {
-                // Configuração otimizada para JSON (funciona no 1.5 Flash/Pro)
-                const modelConfig = { model: modelName };
-                if (modelName.includes("1.5") || modelName.includes("2.")) {
-                    modelConfig.generationConfig = { responseMimeType: "application/json" };
+                const model = genAI.getGenerativeModel({ model: modelName, generationConfig: { responseMimeType: "application/json" } });
+
+                let result;
+                const fullPrompt = `${systemPrompt}\n\nTexto do usuário: ${prompt || "Analise a imagem."}`;
+
+                if (fileData) {
+                    const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
+                    const base64Data = fileData.split(',')[1];
+                    result = await model.generateContent([
+                        fullPrompt,
+                        { inlineData: { data: base64Data, mimeType: mimeType } }
+                    ]);
+                } else {
+                    result = await model.generateContent(fullPrompt);
                 }
 
-                const model = genAI.getGenerativeModel(modelConfig);
-                const result = await model.generateContent(`${systemPrompt}\n\nTexto do usuário: ${prompt}`);
                 const response = await result.response;
                 return parseAIResponse(response.text());
             } catch (error) {
-                console.warn(`EcomFlow Calc: Falha no modelo ${modelName}. Tentando próximo... Erro:`, error.message);
+                // console.warn(`EcomFlow Calc: Falha no modelo ${modelName}.`, error.message);
                 lastErrorMsg = error.message;
             }
         }
-        throw new Error(`Não foi possível calcular. Todos os modelos falharam. Último erro: ${lastErrorMsg}`);
+        throw new Error(`Erro no cálculo via IA: ${lastErrorMsg}`);
 
     } else {
         throw new Error("API Key não configurada.");

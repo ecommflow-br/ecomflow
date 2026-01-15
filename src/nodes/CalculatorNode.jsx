@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { calculateWithAI } from '../utils/ai';
 
-const CalculatorNode = ({ onRemove, onAdd }) => {
+const CalculatorNode = ({ onRemove, onAdd, initialData }) => {
     const [mode, setMode] = useState('standard'); // 'standard', 'reverse', 'chat'
     const [platform, setPlatform] = useState('manual');
     const [loading, setLoading] = useState(false);
@@ -34,6 +34,25 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
     const [desiredMargin, setDesiredMargin] = useState('25');
     const [reverseTax, setReverseTax] = useState('18');
     const [shipping, setShipping] = useState('0');
+
+    // Populate from AI Extraction
+    useEffect(() => {
+        if (initialData) {
+            console.log("Calculator received AI data:", initialData);
+            if (initialData.mode === 'reverse' || (initialData.targetPrice > 0 && !initialData.cost)) {
+                setMode('reverse');
+                if (initialData.targetPrice) setTargetPrice(initialData.targetPrice.toString());
+                if (initialData.desiredMargin) setDesiredMargin(initialData.desiredMargin.toString());
+                if (initialData.shipping) setShipping(initialData.shipping.toString());
+            } else {
+                setMode('standard');
+                if (initialData.cost) setCost(initialData.cost.toString());
+                if (initialData.tax) setTax(initialData.tax.toString());
+                if (initialData.markup) setMarkup(initialData.markup.toString());
+                if (initialData.extra) setExtra(initialData.extra.toString());
+            }
+        }
+    }, [initialData]);
 
     // Results
     const [result, setResult] = useState(null);
