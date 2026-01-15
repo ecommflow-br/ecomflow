@@ -102,7 +102,10 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
 
 const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Atualizado para 2.0 contextualmente conforme o feedback do usuário
+    // O backend do Google as vezes mapeia 2.5 flash como 'gemini-2.0-flash-exp' ou 'gemini-2.0-flash'
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const toneInst = getToneInstruction(tone);
 
     const prompt = `
@@ -143,19 +146,21 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     } catch (error) {
         console.error("Gemini API Error Detail:", error);
 
-        if (error.message?.includes("404")) {
+        // Fallback amplo se o 2.0 não for encontrado
+        if (error.message?.includes("not found") || error.message?.includes("404")) {
             try {
-                // Tenta o Flash 1.5 denovo mas com string explicita de fallback ou Pro
-                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+                // Tenta o 1.5 Flash (stable) como fallback
+                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
                 const res = await fallbackModel.generateContent(prompt);
                 return parseAIResponse(res.response.text());
             } catch (fallbackError) {
-                throw new Error("Modelo Gemini não encontrado. Verifique se sua chave tem acesso ao Gemini 1.5 Flash no AI Studio.");
+                // Se tudo falhar, avisa sobre a necessidade do 2.0
+                throw new Error("Erro de Versão: Ative o 'Gemini 2.0 Flash' ou '1.5 Flash' no seu Google AI Studio.");
             }
         }
 
-        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Aguarde 30 segundos ou use OpenAI.");
-        if (error.message?.includes("403")) throw new Error("Chave Gemini INVÁLIDA ou vazada. Crie uma nova no AI Studio.");
+        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Aguarde 30 segundos.");
+        if (error.message?.includes("403")) throw new Error("Chave Gemini bloqueada ou vazada por segurança. Crie uma nova.");
 
         throw error;
     }
