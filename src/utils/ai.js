@@ -102,11 +102,10 @@ const generateWithOpenAI = async (apiKey, input, fileData, tone) => {
 
 const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Atualizado para 2.0 contextualmente conforme o feedback do usuário
-    // O backend do Google as vezes mapeia 2.5 flash como 'gemini-2.0-flash-exp' ou 'gemini-2.0-flash'
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const toneInst = getToneInstruction(tone);
+
+    // Lista de modelos para tentar (Prioridade 2.0 Flash)
+    const modelsToTry = ["gemini-2.0-flash", "gemini-2.0-flash-exp", "gemini-1.5-flash"];
 
     const prompt = `
     Aja como um especialista em e-commerce brasileiro. ${toneInst}
@@ -121,47 +120,35 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     IMPORTANTE: Retorne APENAS o JSON. Sem textos explicativos.
     `;
 
-    try {
-        let result;
-        if (fileData) {
-            const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
-            const base64Data = fileData.split(',')[1];
-
-            result = await model.generateContent([
-                prompt,
-                {
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: mimeType
-                    }
-                }
-            ]);
-        } else {
-            result = await model.generateContent(prompt);
-        }
-
-        const response = await result.response;
-        const text = response.text();
-        return parseAIResponse(text);
-    } catch (error) {
-        console.error("Gemini API Error Detail:", error);
-
-        // Fallback amplo se o 2.0 não for encontrado
-        if (error.message?.includes("not found") || error.message?.includes("404")) {
-            try {
-                // Tenta o 1.5 Flash (stable) como fallback
-                const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const res = await fallbackModel.generateContent(prompt);
-                return parseAIResponse(res.response.text());
-            } catch (fallbackError) {
-                // Se tudo falhar, avisa sobre a necessidade do 2.0
-                throw new Error("Erro de Versão: Ative o 'Gemini 2.0 Flash' ou '1.5 Flash' no seu Google AI Studio.");
+    for (const modelName of modelsToTry) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            let result;
+            if (fileData) {
+                const mimeType = fileData.match(/^data:([^;]+);/)?.[1] || "image/jpeg";
+                const base64Data = fileData.split(',')[1];
+                result = await model.generateContent([
+                    prompt,
+                    { inlineData: { data: base64Data, mimeType: mimeType } }
+                ]);
+            } else {
+                result = await model.generateContent(prompt);
             }
+
+            const response = await result.response;
+            return parseAIResponse(response.text());
+        } catch (error) {
+            console.warn(`Falha ao tentar modelo ${modelName}:`, error.message);
+            // Se o erro for de cota ou chave vazada, não adianta tentar outro modelo
+            if (error.message?.includes("429") || error.message?.includes("403")) {
+                throw error;
+            }
+            // Se for o último modelo da lista e der 404, aí sim jogamos o erro final
+            if (modelName === modelsToTry[modelsToTry.length - 1]) {
+                throw new Error("Nenhum modelo Gemini compatível encontrado. Verifique seu acesso no AI Studio.");
+            }
+            // Caso contrário, continua para o próximo loop (próximo modelo)
+            continue;
         }
-
-        if (error.message?.includes("429")) throw new Error("Cota do Gemini excedida. Aguarde 30 segundos.");
-        if (error.message?.includes("403")) throw new Error("Chave Gemini bloqueada ou vazada por segurança. Crie uma nova.");
-
-        throw error;
     }
 };
