@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Copy, Check, Tally3, AlignLeft, Table, PlusCircle } from 'lucide-react';
+import { Copy, Check, Tally3, AlignLeft, Table, PlusCircle, Maximize2, X, Minimize2, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
     const [copied, setCopied] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
-    const copy = () => {
+    const handleCopy = () => {
         if (!content) return;
         // Copy logic simplified to handle objects
         const textToCopy = typeof content === 'object'
@@ -16,7 +18,7 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
     };
 
     // Helper to render content safely
-    const renderContent = () => {
+    const renderContent = (isFull = false) => {
         if (!content) return <span className="text-gray-300 italic">Processando...</span>;
 
         if (typeof content === 'object') {
@@ -31,31 +33,72 @@ const BaseResponseNode = ({ title, icon: Icon, color, content }) => {
             );
         }
 
-        return content;
+        return content; // Editável futuramente? Por enquanto read-only
     };
 
     return (
-        <div className={`node-glow w-[320px] transition-all hover:scale-[1.02]`}>
-            <div className="node-inner p-6 relative">
-                <div className="flex items-center justify-between mb-4">
-                    <div className={`flex items-center gap-2 text-${color}-600`}>
-                        <Icon size={18} />
-                        <span className="text-xs font-bold uppercase tracking-widest">{title}</span>
+        <>
+            <div className={`node-glow w-[300px]`}>
+                <div className="node-inner p-4 hover:scale-[1.02] transition-transform relative">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className={`flex items-center gap-2 ${color}`}>
+                            <Icon size={16} />
+                            <span className="font-bold text-xs uppercase tracking-widest">{title}</span>
+                        </div>
+                        <div className="flex gap-1">
+                            <button onClick={() => setIsExpanded(true)} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-indigo-600 transition-colors" title="Expandir (Zen Mode)">
+                                <Maximize2 size={14} />
+                            </button>
+                            <button onClick={handleCopy} className="p-1.5 hover:bg-gray-100 rounded-md text-gray-400 hover:text-emerald-500 transition-colors">
+                                {copied ? <Check size={14} /> : <Copy size={14} />}
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        onClick={copy}
-                        className="p-2 hover:bg-black/5 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
-                        title="Copiar"
-                    >
-                        {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
-                    </button>
-                </div>
 
-                <div className="text-sm text-gray-700 leading-relaxed max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
-                    {renderContent()}
+                    <div className="text-sm text-gray-700 leading-relaxed max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                        {renderContent()}
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* Zen Mode Modal */}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-md flex flex-col p-8 md:p-16"
+                    >
+                        <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
+                            <div className="flex justify-between items-center mb-8">
+                                <div className={`flex items-center gap-3 ${color}`}>
+                                    <Icon size={32} />
+                                    <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+                                </div>
+                                <div className="flex gap-4">
+                                    <button onClick={handleCopy} className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl font-bold transition-all">
+                                        {copied ? <Check size={20} /> : <Copy size={20} />}
+                                        {copied ? 'Copiado!' : 'Copiar Texto'}
+                                    </button>
+                                    <button onClick={() => setIsExpanded(false)} className="p-3 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 rounded-xl transition-all">
+                                        <Minimize2 size={24} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm overflow-y-auto text-lg leading-loose text-gray-800 font-medium">
+                                {renderContent(true)}
+                            </div>
+
+                            <p className="text-center text-gray-400 mt-6 text-sm flex items-center justify-center gap-2">
+                                <Sparkles size={14} /> Modo de Foco: Sem distrações.
+                            </p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 
