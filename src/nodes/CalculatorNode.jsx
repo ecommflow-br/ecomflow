@@ -94,7 +94,88 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
         }
     };
 
-    // ... (useEffect hooks unchanged)
+    // Standard Calculation Effect
+    useEffect(() => {
+        const costVal = parseFloat(cost);
+        const taxVal = parseFloat(tax) || 0;
+        const markupVal = parseFloat(markup) || 0;
+        const extraVal = parseFloat(extra) || 0;
+
+        if (!isNaN(costVal) && costVal >= 0) {
+            // Logic:
+            // 1. Base Cost = Cost + Extra
+            // 2. Desired Net Revenue = Base Cost * (1 + Markup/100)
+            // 3. Gross Price = Desired Net Revenue / (1 - Tax/100)
+            // But usually markup is on cost.
+
+            // Simple Markup on Cost:
+            // Price = Cost * (1 + Markup)
+            // Net = Price * (1 - Tax)
+            // Profit = Net - Cost
+
+            // Better formula for "I want 50% markup on cost":
+            // Selling Price so that Profit = 50% of Cost? Or Margin?
+            // "Markup 50%" usually means Price = Cost * 1.5.
+
+            // Let's use:
+            // Price = Cost * (1 + Markup/100) / (1 - Tax/100)
+            // This ensures the markup is preserved AFTER tax? 
+            // example: Cost 100. Markup 50%. Net needed 150. Tax 10%. Price = 150 / 0.9 = 166.66.
+            // 166.66 * 0.9 = 150. Profit 50. 50/100 = 50%. Correct.
+
+            const totalCost = costVal + extraVal;
+            const taxMultiplier = 1 - (taxVal / 100);
+
+            // Avoid division by zero if tax is 100% (unlikely but safe)
+            if (taxMultiplier <= 0.01) {
+                setResult(null);
+                return;
+            }
+
+            const finalPrice = (totalCost * (1 + markupVal / 100)) / taxMultiplier;
+            const taxAmount = finalPrice * (taxVal / 100);
+            const profit = finalPrice - taxAmount - totalCost;
+            const margin = (profit / finalPrice) * 100;
+
+            setResult({
+                finalPrice,
+                profit,
+                margin,
+                taxAmount
+            });
+        } else {
+            setResult(null);
+        }
+    }, [cost, tax, markup, extra]);
+
+    // Reverse Calculation Effect
+    useEffect(() => {
+        const targetVal = parseFloat(targetPrice);
+        const marginVal = parseFloat(desiredMargin) || 0;
+        const taxVal = parseFloat(reverseTax) || 0;
+        const shippingVal = parseFloat(shipping) || 0;
+
+        if (!isNaN(targetVal) && targetVal > 0) {
+            // Logic:
+            // Revenue = Target * (1 - Tax/100)
+            // Desired Profit = Target * (Margin/100)
+            // Max Cost = Revenue - Desired Profit - Shipping
+
+            const taxAmount = targetVal * (taxVal / 100);
+            const netRevenue = targetVal - taxAmount;
+            const desiredProfitAmount = targetVal * (marginVal / 100);
+            const maxCost = netRevenue - desiredProfitAmount - shippingVal;
+
+            setReverseResult({
+                maxCost,
+                profitAmount: desiredProfitAmount,
+                isViable: maxCost > 0,
+                taxAmount
+            });
+        } else {
+            setReverseResult(null);
+        }
+    }, [targetPrice, desiredMargin, reverseTax, shipping]);
 
     // standard/reverse logic (omitted in previous view but assumed present or managed by existing hooks)
 
