@@ -62,21 +62,30 @@ const CalculatorNode = ({ onRemove, onAdd }) => {
         setLoading(true);
         try {
             const data = await calculateWithAI(chatInput);
-            // Don't switch mode automatically, keep user in chat
-            // if (data.mode) setMode(data.mode);
 
-            if (data.cost) setCost(data.cost.toString());
-            if (data.tax) {
+            // Relaxed checks to accept 0 as valid input
+            if (data.cost !== undefined && data.cost !== null) setCost(data.cost.toString());
+
+            if (data.tax !== undefined && data.tax !== null) {
                 setTax(data.tax.toString());
                 setReverseTax(data.tax.toString());
             }
-            if (data.markup) setMarkup(data.markup.toString());
-            if (data.extra) setExtra(data.extra.toString());
-            if (data.targetPrice) setTargetPrice(data.targetPrice.toString());
-            if (data.desiredMargin) setDesiredMargin(data.desiredMargin.toString());
-            if (data.shipping) setShipping(data.shipping.toString());
+            if (data.markup !== undefined && data.markup !== null) setMarkup(data.markup.toString());
+            if (data.extra !== undefined && data.extra !== null) setExtra(data.extra.toString());
+
+            if (data.targetPrice !== undefined && data.targetPrice !== null) setTargetPrice(data.targetPrice.toString());
+            if (data.desiredMargin !== undefined && data.desiredMargin !== null) setDesiredMargin(data.desiredMargin.toString());
+            if (data.shipping !== undefined && data.shipping !== null) setShipping(data.shipping.toString());
+
             setPlatform('manual');
             setChatInput('');
+
+            // Force scroll to bottom to show results
+            setTimeout(() => {
+                const container = document.querySelector('.overflow-y-auto');
+                if (container) container.scrollTop = container.scrollHeight;
+            }, 100);
+
         } catch (error) {
             console.error(error);
             alert("Erro no Chat IA: " + error.message);
