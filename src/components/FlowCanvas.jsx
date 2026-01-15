@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import InputNode from '../nodes/InputNode';
 import { TitleNode, DescriptionNode, SizeTableNode, ExtraNode } from '../nodes/ResponseNodes';
 import MiniPriceNode from '../nodes/MiniPriceNode';
-import { generateProductContent } => '../utils/ai';
+import { generateProductContent } from '../utils/ai';
 import { Sparkles, ArrowRight, ZoomIn, ZoomOut, Lock, Unlock, RotateCcw } from 'lucide-react';
 
 // Componente de Linha Dinâmica
