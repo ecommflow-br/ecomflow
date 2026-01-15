@@ -83,8 +83,24 @@ function App() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
+            <div className="min-h-screen bg-[#050507] flex flex-col items-center justify-center font-['Inter'] relative overflow-hidden">
+                {/* Ambient Glows */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full animate-pulse" />
+
+                <div className="relative group flex flex-col items-center">
+                    <div className="w-20 h-20 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-600/40 mb-6 border border-white/10">
+                        <Workflow size={36} className="text-white animate-pulse" />
+                    </div>
+                    <h1 className="text-2xl font-black text-white tracking-widest uppercase">EcomFlow</h1>
+                    <div className="h-0.5 w-12 bg-indigo-500 rounded-full mt-2 mb-8" />
+
+                    <div className="flex gap-1.5">
+                        <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" />
+                    </div>
+                    <p className="mt-4 text-[10px] text-gray-500 font-black tracking-[0.3em] uppercase opacity-50">Sincronizando Dados</p>
+                </div>
             </div>
         );
     }
