@@ -5,7 +5,7 @@ import { TitleNode, DescriptionNode, SizeTableNode, ExtraNode } from '../nodes/R
 import MiniPriceNode from '../nodes/MiniPriceNode';
 import CalculatorNode from '../nodes/CalculatorNode';
 import HistorySidebar from './HistorySidebar';
-import { generateProductContent } from '../utils/ai';
+import { generateProductContent, calculateWithAI } from '../utils/ai';
 import { generateSKU } from '../utils/skuGenerator';
 import { Sparkles, ZoomIn, ZoomOut, Lock, Unlock, RotateCcw, Box, History, Calculator as CalcIcon, Plus } from 'lucide-react';
 
