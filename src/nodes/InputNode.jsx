@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Mic, Image as ImageIcon, Send, X } from 'lucide-react';
+import { Sparkles, Mic, MicOff, Image as ImageIcon, Send, X } from 'lucide-react';
 
 const InputNode = ({ onGenerate }) => {
     const [text, setText] = useState('');
