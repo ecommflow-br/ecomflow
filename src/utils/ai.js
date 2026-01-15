@@ -106,10 +106,11 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
 
     // Priorizando o NOVO modelo 2.5 Flash como solicitado pelo usuário
     const modelsToTry = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
         "gemini-1.5-flash",
-        "gemini-2.0-flash-exp"
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro",
+        "gemini-1.0-pro",
+        "gemini-pro"
     ];
 
     const prompt = `
@@ -152,7 +153,7 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
         }
     }
 
-    throw new Error(`O Google não encontrou o modelo 2.5/2.0/1.5 na sua conta. Erro retornado: ${lastErrorMsg}`);
+    throw new Error(`O Google não encontrou nenhum modelo compatível (1.5 Flash/Pro). Erro: ${lastErrorMsg}`);
 };
 
 export const calculateWithAI = async (prompt) => {
@@ -187,10 +188,30 @@ export const calculateWithAI = async (prompt) => {
         return parseAIResponse(response.choices[0].message.content);
     } else if (geminiKey) {
         const genAI = new GoogleGenerativeAI(geminiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const result = await model.generateContent(`${systemPrompt}\n\nTexto do usuário: ${prompt}`);
-        const response = await result.response;
-        return parseAIResponse(response.text());
+
+        // Fallback list specifically for calculation
+        const modelsToTry = [
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
+            "gemini-1.5-pro",
+            "gemini-pro"
+        ];
+
+        let lastErrorMsg = "";
+
+        for (const modelName of modelsToTry) {
+            try {
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(`${systemPrompt}\n\nTexto do usuário: ${prompt}`);
+                const response = await result.response;
+                return parseAIResponse(response.text());
+            } catch (error) {
+                console.warn(`EcomFlow Calc: Falha no ${modelName}:`, error.message);
+                lastErrorMsg = error.message;
+            }
+        }
+        throw new Error(`Erro ao calcular com IA (Modelos indisponíveis): ${lastErrorMsg}`);
+
     } else {
         throw new Error("API Key não configurada.");
     }
