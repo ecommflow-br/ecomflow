@@ -119,11 +119,13 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     Aja como um especialista em e-commerce brasileiro. ${toneInst}
     Analise o produto: "${input}"
     
+    ATENÇÃO ULTRA-DETALHADA: Analise minuciosamente a imagem/texto. Identifique amarrações, tipos de manga, golas, zíperes, texturas e acabamentos. Se houver amarração, descreva exatamente como é.
+    
     Retorne APENAS um JSON (PORTUGUÊS, SEM EMOJIS):
-    - title: Título SEO.
-    - description: Descrição vendedora (bullets).
-    - sizeTable: Tabela.
-    - extraDetails: Objeto (Observations, Packaging, Shipping).
+    - title: Título SEO (Keywords fortes).
+    - description: Descrição vendedora profissional. IMPORTANTE: NÃO USE LISTA NUMERADA (1., 2.). Use texto fluido ou bullets simples (-). Destaque os detalhes visuais encontrados (amarração, caimento).
+    - sizeTable: Tabela completa.
+    - extraDetails: Objeto (Observations, Packaging, Shipping). Em Observations, liste detalhes técnicos como tecido, forro e fechamento.
     `;
 
     let lastErrorMsg = "";
