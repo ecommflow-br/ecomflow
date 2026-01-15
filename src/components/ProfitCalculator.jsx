@@ -69,7 +69,7 @@ const ProfitCalculator = () => {
     }, [targetPrice, desiredMargin, reverseTax, shipping]);
 
     return (
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[500px]">
+        <div className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[500px]">
             {/* Header / Toggles */}
             <div className="p-4 bg-gray-50 border-b border-gray-100">
                 <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200">
