@@ -104,13 +104,12 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const toneInst = getToneInstruction(tone);
 
-    // Lista de modelos para tentar, incluindo o 2.0 (estável) e o citado pelo usuário
+    // Lista de modelos para tentar (Prioridade 2.0 Flash)
     const modelsToTry = [
-        "gemini-2.0-flash", // Oficial atual (Flash 2.0)
-        "gemini-1.5-flash", // Estável anterior
-        "gemini-2.0-flash-exp", // Experimental anterior
-        "gemini-1.5-pro",   // Pro mais robusto
-        "gemini-2.5-flash"  // Variação citada pelo usuário
+        "gemini-2.0-flash",       // Modelo estável mais atual
+        "gemini-2.0-flash-exp",   // Versão experimental do 2.0
+        "gemini-1.5-flash",       // Modelo estável anterior
+        "gemini-2.5-flash"        // ID citado pelo usuário (para garantir)
     ];
 
     const prompt = `
@@ -130,6 +129,7 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
 
     for (const modelName of modelsToTry) {
         try {
+            console.log(`Tentando conectar com: ${modelName}`);
             const model = genAI.getGenerativeModel({ model: modelName });
             let result;
 
@@ -148,12 +148,12 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
             return parseAIResponse(response.text());
         } catch (error) {
             lastError = error;
-            console.error(`Falha no modelo ${modelName}:`, error.message);
-            // Se for erro de quota ou chave bloqueada, para por aqui
+            console.warn(`Erro no modelo ${modelName}:`, error.message);
+            // Se for cota ou chave bloqueada, não adianta tentar outros
             if (error.message?.includes("429") || error.message?.includes("403")) throw error;
-            // Caso contrário, tenta o próximo modelo
         }
     }
 
-    throw new Error(`Nenhum modelo Gemini (Flash 2.0/1.5) funcionou. O Google reportou: ${lastError?.message || "Erro desconhecido"}`);
+    // Se falhou em todos, mostramos uma orientação clara
+    throw new Error(`Google reportou: ${lastError?.message || "Modelo não encontrado"}. DICA: Sua chave pode estar vinculada apenas ao Gemini 2.0 Flash no AI Studio.`);
 };
