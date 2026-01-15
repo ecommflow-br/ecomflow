@@ -104,13 +104,13 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const toneInst = getToneInstruction(tone);
 
-    // Lista exaustiva incluindo a versão citada pelo usuário e variações comuns
+    // Lista de modelos para tentar, incluindo o 2.0 (estável) e o citado pelo usuário
     const modelsToTry = [
-        "gemini-2.5-flash", // Nome citado pelo usuário (se existir no tier dele)
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-exp",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-latest"
+        "gemini-2.0-flash", // Oficial atual (Flash 2.0)
+        "gemini-1.5-flash", // Estável anterior
+        "gemini-2.0-flash-exp", // Experimental anterior
+        "gemini-1.5-pro",   // Pro mais robusto
+        "gemini-2.5-flash"  // Variação citada pelo usuário
     ];
 
     const prompt = `
@@ -130,7 +130,6 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
 
     for (const modelName of modelsToTry) {
         try {
-            console.log(`Tentando Gemini Modelo: ${modelName}`);
             const model = genAI.getGenerativeModel({ model: modelName });
             let result;
 
@@ -149,15 +148,12 @@ const generateWithGemini = async (apiKey, input, fileData, tone) => {
             return parseAIResponse(response.text());
         } catch (error) {
             lastError = error;
-            console.warn(`Falha no modelo ${modelName}:`, error.message);
-
+            console.error(`Falha no modelo ${modelName}:`, error.message);
             // Se for erro de quota ou chave bloqueada, para por aqui
-            if (error.message?.includes("429") || error.message?.includes("403")) {
-                throw error;
-            }
-            // Continua para o próximo modelo se for 404
+            if (error.message?.includes("429") || error.message?.includes("403")) throw error;
+            // Caso contrário, tenta o próximo modelo
         }
     }
 
-    throw new Error(`Falha Total: Nenhum modelo (incluindo o 2.5/2.0/1.5) foi encontrado. Mensagem do Google: ${lastError?.message || "Desconhecida"}`);
+    throw new Error(`Nenhum modelo Gemini (Flash 2.0/1.5) funcionou. O Google reportou: ${lastError?.message || "Erro desconhecido"}`);
 };
