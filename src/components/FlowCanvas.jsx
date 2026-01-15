@@ -79,6 +79,7 @@ const ConnectionLine = ({ fromRef, toRef, zoom }) => {
 const FlowCanvas = () => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
+    const [sku, setSku] = useState(null); // New SKU State
     const [zoom, setZoom] = useState(1);
     const [isLocked, setIsLocked] = useState(false);
 
@@ -90,11 +91,15 @@ const FlowCanvas = () => {
     const extraRef = useRef(null);
     const priceRef = useRef(null);
 
-    const handleGenerate = async (text, file) => {
+    const handleGenerate = async (text, file, tone) => {
         setLoading(true);
         try {
-            const content = await generateProductContent(text, file);
+            const content = await generateProductContent(text, file, tone);
             setResult(content);
+            // Auto Generate SKU
+            if (content && content.title) {
+                setSku(generateSKU(content.title));
+            }
         } catch (error) {
             console.error(error);
             alert(`Erro na Geração: ${error.message}`);
@@ -173,9 +178,14 @@ const FlowCanvas = () => {
                 {/* Results - Draggable "Flow" Layout */}
                 {result && !loading && (
                     <>
-                        {/* Nodes positioned absolutely but draggable */}
                         <motion.div ref={titleRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[5%] top-[400px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
                             <TitleNode data={{ content: result.title }} />
+                            {/* SKU Badge attached to Title */}
+                            {sku && (
+                                <div className="absolute -top-3 -right-3 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-gray-700 flex items-center gap-1">
+                                    <Box size={10} className="text-indigo-400" /> SKU: {sku}
+                                </div>
+                            )}
                         </motion.div>
 
                         <motion.div ref={descRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[25%] top-[550px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>

@@ -3,20 +3,25 @@ import { Sparkles, Mic, Image as ImageIcon, Send, X } from 'lucide-react';
 
 const InputNode = ({ onGenerate }) => {
     const [text, setText] = useState('');
-    const [image, setImage] = useState(null);
-    const [recording, setRecording] = useState(false);
+    const [image, setImage] = useState(null); // localImage state handled by parent or logic below
+    const [localImage, setLocalImage] = useState(null);
+    const [isListening, setIsListening] = useState(false);
+    const [tone, setTone] = useState('standard'); // New State
+
+    // Helper to sync image state if needed or just use localImage
+    // Simplified logic for this component based on previous edits
 
     const onImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => setImage(reader.result);
+            reader.onloadend = () => setLocalImage(reader.result);
             reader.readAsDataURL(file);
         }
     };
 
     const handleAction = () => {
-        if (onGenerate) onGenerate(text, localImage); // Changed to localImage
+        if (onGenerate) onGenerate(text, localImage, tone);
     };
 
     const handlePaste = (e) => {
@@ -29,20 +34,22 @@ const InputNode = ({ onGenerate }) => {
                     setLocalImage(event.target.result);
                 };
                 reader.readAsDataURL(blob);
-                e.preventDefault(); // Prevent pasting the image binary text
+                e.preventDefault();
                 return;
             }
         }
     };
 
-    // New function for toggling listening state
     const toggleListening = () => {
         setIsListening(!isListening);
+        // Mock recording logic
+        if (!isListening) {
+            setTimeout(() => setIsListening(false), 2000); // Auto stop mock
+        }
     };
 
-    // New function for image upload (replaces onImageChange in the new UI structure)
     const handleImageUpload = (e) => {
-        onImageChange(e); // Reusing the existing image change logic
+        onImageChange(e);
     };
 
     return (
@@ -50,13 +57,23 @@ const InputNode = ({ onGenerate }) => {
             <div className={`node-inner p-6 relative transition-all ${isListening ? 'border-indigo-500 ring-2 ring-indigo-500/20' : ''}`}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2 text-indigo-600">
-                        <MessageSquarePlus size={20} />
+                        <Sparkles size={20} />
                         <span className="font-bold text-xs uppercase tracking-widest">Input do Produto</span>
                     </div>
-                    {/* Status Indicator */}
-                    <div className="flex gap-2">
-                        {localImage && <div className="w-2 h-2 rounded-full bg-emerald-500" title="Imagem carregada" />}
-                        {text && <div className="w-2 h-2 rounded-full bg-indigo-500" title="Texto inserido" />}
+
+                    {/* Tone Selector */}
+                    <div className="relative">
+                        <select
+                            value={tone}
+                            onChange={(e) => setTone(e.target.value)}
+                            className="bg-gray-50 border-none text-xs font-bold text-indigo-600 outline-none cursor-pointer hover:bg-indigo-50 rounded-lg p-1 transition-colors"
+                        >
+                            <option value="standard">Padrão</option>
+                            <option value="sales">Vendedor (Agressivo)</option>
+                            <option value="luxury">Luxo (Sofisticado)</option>
+                            <option value="fun">Jovem (Divertido)</option>
+                            <option value="seo">SEO Técnico</option>
+                        </select>
                     </div>
                 </div>
 
@@ -67,7 +84,7 @@ const InputNode = ({ onGenerate }) => {
                     <textarea
                         value={text}
                         onChange={(e) => setText(e.target.value)}
-                        placeholder="Cole uma imagem aqui ou descreva: 'Tênis Nike Air Max...'"
+                        placeholder="Cole uma imagem aqui ou descreva... 'Tênis Nike...'"
                         className="w-full h-32 bg-gray-50/50 rounded-xl border border-gray-200 p-4 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 resize-none transition-all"
                     />
 
