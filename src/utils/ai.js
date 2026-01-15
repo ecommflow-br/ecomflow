@@ -69,12 +69,25 @@ const generateWithOpenAI = async (apiKey, input, fileData) => {
     const messages = [
         {
             role: "system",
-            content: "Você é um especialista em E-commerce. Responda APENAS com um JSON válido."
+            content: "Você é um especialista em E-commerce. Responda APENAS com um JSON válido. IMPORTANTE: NÃO USE EMOJIS. Use uma linguagem profissional, técnica e persuasiva."
         },
         {
             role: "user",
             content: [
-                { type: "text", text: `Analise este produto e gere o JSON: ${input}` },
+                {
+                    type: "text", text: `Analise este produto e gere um JSON seguindo este padrão (sem emojis):
+                {
+                    "title": "Título SEO Otimizado (ex: Vestido Longo...)",
+                    "description": "Texto persuasivo de venda + Lista de Características (Tecido, Modelo, Detalhes)",
+                    "sizeTable": "Tabela de medidas sugerida (P/M/G ou cm)",
+                    "extraDetails": {
+                        "observations": "Observações Importantes (ex: variação de cor)",
+                        "packaging": "Conteúdo da Embalagem",
+                        "shipping": "Informações de Envio"
+                    }
+                }
+                Produto: ${input}`
+                },
                 fileData ? { type: "image_url", image_url: { url: fileData } } : null
             ].filter(Boolean)
         }
@@ -88,8 +101,7 @@ const generateWithOpenAI = async (apiKey, input, fileData) => {
             response_format: { type: "json_object" }
         });
 
-        const content = response.choices[0].message.content;
-        return JSON.parse(content);
+        return parseAIResponse(response.choices[0].message.content);
     } catch (error) {
         console.error("OpenAI Error:", error);
         throw new Error("Erro na OpenAI: " + (error.message || "Verifique sua chave e créditos."));
@@ -102,16 +114,16 @@ const generateWithGemini = async (apiKey, input, fileData) => {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
-    Aja como um especialista em e-commerce brasileiro. Com base na descrição ou imagem fornecida:
-    "${input}"
+    Aja como um especialista em e-commerce brasileiro. Analise a descrição ou imagem: "${input}"
     
-    Gere um JSON com os seguintes campos (em português):
-    - title: Um título atraente e otimizado para SEO.
-    - description: Uma descrição detalhada e vendedora com bullet points.
-    - sizeTable: Uma tabela de tamanhos sugerida (ex: P, M, G ou dimensões).
-    - extraDetails: Informações de cuidados, material ou dicas de uso.
+    Gere um JSON (SEM EMOJIS, LINGUAGEM PROFISSIONAL) com:
+    - title: Título otimizado para SEO (ex: Nome do Produto + Diferenciais).
+    - description: Uma descrição vendedora completa, incluindo "Características do Produto" em bullets.
+    - sizeTable: Sugestão de medidas (Tabela P/M/G ou Numeração).
+    - extraDetails: Um objeto com campos como "Cuidados", "Observações", "Conteúdo da Embalagem".
 
-    RETORNE APENAS O JSON, SEM FORMATAÇÃO DE MARKDOWN.
+    NÃO use emojis. Mantenha o tom sério e focado em conversão.
+    RETORNE APENAS O JSON LIMPO.
     `;
 
     try {
