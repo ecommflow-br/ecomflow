@@ -156,7 +156,7 @@ const FlowCanvas = () => {
                     ref={inputRef}
                     drag={!isLocked}
                     dragMomentum={false}
-                    className={`absolute left-[calc(50%-170px)] top-10 z-30 w-[340px] ${isLocked ? 'cursor-default' : 'cursor-move active:cursor-grabbing'}`}
+                    className={`absolute left-1/2 -translate-x-1/2 top-10 z-30 w-[340px] ${isLocked ? 'cursor-default' : 'cursor-move active:cursor-grabbing'}`}
                 >
                     <InputNode onGenerate={handleGenerate} />
                 </motion.div>
@@ -199,7 +199,7 @@ const FlowCanvas = () => {
                             <ExtraNode data={{ content: result.extraDetails }} />
                         </motion.div>
 
-                        <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left-[calc(50%-150px)] top-[480px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
+                        <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left-1/2 -translate-x-1/2 top-[480px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
                             <MiniPriceNode />
                         </motion.div>
                     </>
