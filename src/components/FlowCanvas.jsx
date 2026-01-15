@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InputNode from '../nodes/InputNode';
 import { TitleNode, DescriptionNode, SizeTableNode, ExtraNode } from '../nodes/ResponseNodes';
-import MiniPriceNode from '../nodes/MiniPriceNode';
+// MiniPriceNode removed
 import CalculatorNode from '../nodes/CalculatorNode';
 import HistorySidebar from './HistorySidebar';
 import { generateProductContent, calculateWithAI } from '../utils/ai';
@@ -165,7 +165,7 @@ const FlowCanvas = () => {
                     {!removedNodes.includes('desc') && <ConnectionLine fromRef={inputRef} toRef={descRef} zoom={zoom} />}
                     {!removedNodes.includes('size') && <ConnectionLine fromRef={inputRef} toRef={sizeRef} zoom={zoom} />}
                     {!removedNodes.includes('extra') && <ConnectionLine fromRef={inputRef} toRef={extraRef} zoom={zoom} />}
-                    {!removedNodes.includes('price') && <ConnectionLine fromRef={inputRef} toRef={priceRef} zoom={zoom} />}
+
                 </svg>
             )}
 
@@ -257,11 +257,7 @@ const FlowCanvas = () => {
                             </motion.div>
                         )}
 
-                        {!removedNodes.includes('price') && (
-                            <motion.div ref={priceRef} drag={!isLocked} dragMomentum={false} className={`absolute left-1/2 -translate-x-1/2 top-[480px] z-20 hover:z-50 ${isLocked ? '' : 'cursor-move active:cursor-grabbing'}`}>
-                                <MiniPriceNode onRemove={() => handleRemoveResponseNode('price')} />
-                            </motion.div>
-                        )}
+                        {/* Price Node Removed by User Request */}
                     </>
                 )}
 
