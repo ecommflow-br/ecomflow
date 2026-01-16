@@ -337,7 +337,7 @@ const VideoEditor = () => {
         setLoading(true);
 
         try {
-            // Using Cobalt API (free, robust)
+            // Using Cobalt API (free, robust) - simplified body for max compatibility
             const response = await fetch('https://api.cobalt.tools/api/json', {
                 method: 'POST',
                 headers: {
@@ -345,11 +345,7 @@ const VideoEditor = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    url: url,
-                    vCodec: 'h264',
-                    vQuality: '720',
-                    isAudioOnly: false,
-                    muteAudio: false
+                    url: url
                 })
             });
 
@@ -363,13 +359,18 @@ const VideoEditor = () => {
             if (data.status === 'stream' || data.status === 'redirect') {
                 downloadUrl = data.url;
             } else if (data.status === 'picker') {
-                // If multiple, picking the first (usually best)
                 downloadUrl = data.picker[0].url;
             }
 
             if (downloadUrl) {
-                // Trigger download in new tab
-                window.open(downloadUrl, '_blank');
+                // Robust download trigger
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => document.body.removeChild(link), 100);
 
                 window.dispatchEvent(new CustomEvent('app-toast', {
                     detail: { message: "Download iniciado!", type: 'success' }
@@ -382,7 +383,7 @@ const VideoEditor = () => {
         } catch (error) {
             console.error("Download Error", error);
             let msg = error.message;
-            if (msg.includes('Failed to fetch')) msg = "Erro de conexão. Verifique o link ou a internet.";
+            if (msg.includes('Failed to fetch')) msg = "Erro de conexão. Verifique o link e sua internet.";
 
             window.dispatchEvent(new CustomEvent('app-toast', {
                 detail: { message: msg, type: 'error' }
@@ -407,7 +408,7 @@ const VideoEditor = () => {
                     <input
                         type="text"
                         placeholder="Cole o link aqui (ex: https://instagram.com/reel/...)"
-                        className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-gray-900 placeholder-gray-500"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                     />
