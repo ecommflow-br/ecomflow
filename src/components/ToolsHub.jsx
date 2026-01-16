@@ -65,14 +65,33 @@ const ImageStudio = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
 
-                    if (mode === 'crop') {
-                        // Auto-crop to square center
-                        const size = Math.min(img.width, img.height);
-                        canvas.width = size;
-                        canvas.height = size;
-                        const sx = (img.width - size) / 2;
-                        const sy = (img.height - size) / 2;
-                        ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+                    if (mode.startsWith('crop')) {
+                        let targetRatio = 1;
+                        if (mode === 'crop_4_5') targetRatio = 4 / 5;
+                        if (mode === 'crop_9_16') targetRatio = 9 / 16;
+                        if (mode === 'crop_16_9') targetRatio = 16 / 9;
+
+                        const imgRatio = img.width / img.height;
+                        let drawW, drawH, sx, sy;
+
+                        // Calculate Optimal Center Crop
+                        if (imgRatio > targetRatio) {
+                            // Image is wider than target -> constraint by height
+                            drawH = img.height;
+                            drawW = img.height * targetRatio;
+                            sx = (img.width - drawW) / 2;
+                            sy = 0;
+                        } else {
+                            // Image is taller than target -> constraint by width
+                            drawW = img.width;
+                            drawH = img.width / targetRatio;
+                            sx = 0;
+                            sy = (img.height - drawH) / 2;
+                        }
+
+                        canvas.width = drawW;
+                        canvas.height = drawH;
+                        ctx.drawImage(img, sx, sy, drawW, drawH, 0, 0, drawW, drawH);
                     } else {
                         canvas.width = img.width;
                         canvas.height = img.height;
@@ -128,34 +147,77 @@ const ImageStudio = () => {
             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
                 {processing ? <Wand2 className="animate-spin text-indigo-500" size={48} /> : <ImageIcon size={48} className="text-gray-300" />}
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Estúdio de Imagem</h2>
-            <p className="text-gray-500 mb-8 max-w-md">Converta WebP, corte ou proteja suas fotos em lote. Selecione várias de uma vez!</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-                <button
-                    onClick={() => handleClick('convert')}
-                    disabled={processing}
-                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group"
-                >
-                    <FileCode className="text-gray-400 group-hover:text-indigo-600" />
-                    <span className="text-sm font-bold text-gray-600">WebP → JPG</span>
-                </button>
-                <button
-                    onClick={() => handleClick('crop')}
-                    disabled={processing}
-                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 center group"
-                >
-                    <Scissors className="text-gray-400 group-hover:text-purple-600" />
-                    <span className="text-sm font-bold text-gray-600">Recorte 1:1</span>
-                </button>
-                <button
-                    onClick={() => handleClick('watermark')}
-                    disabled={processing}
-                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group"
-                >
-                    <Wand2 className="text-gray-400 group-hover:text-emerald-600" />
-                    <span className="text-sm font-bold text-gray-600">Marca D'água</span>
-                </button>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Estúdio de Imagem</h2>
+            <p className="text-gray-500 mb-8 max-w-md">Converta, trate e recorte suas fotos em lote.</p>
+
+            <div className="w-full max-w-3xl space-y-6">
+
+                {/* Utilities Group */}
+                <div>
+                    <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-3 text-left pl-1">Utilidades</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button
+                            onClick={() => handleClick('convert')}
+                            disabled={processing}
+                            className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-indigo-400 transition-all flex flex-col items-center gap-2 group"
+                        >
+                            <FileCode className="text-gray-400 group-hover:text-indigo-600" />
+                            <span className="text-sm font-bold text-gray-600">WebP → JPG</span>
+                        </button>
+                        <button
+                            onClick={() => handleClick('watermark')}
+                            disabled={processing}
+                            className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-emerald-400 transition-all flex flex-col items-center gap-2 group"
+                        >
+                            <Wand2 className="text-gray-400 group-hover:text-emerald-600" />
+                            <span className="text-sm font-bold text-gray-600">Marca D'água</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Crops Group */}
+                <div>
+                    <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-3 text-left pl-1">Recortes Inteligentes</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button
+                            onClick={() => handleClick('crop_1_1')}
+                            disabled={processing}
+                            className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-purple-400 transition-all flex flex-col items-center gap-2 group"
+                        >
+                            <div className="w-6 h-6 border-2 border-gray-400 group-hover:border-purple-600 rounded-sm" />
+                            <span className="text-xs font-bold text-gray-600">Quadrado (1:1)</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleClick('crop_4_5')}
+                            disabled={processing}
+                            className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-purple-400 transition-all flex flex-col items-center gap-2 group"
+                        >
+                            <div className="w-5 h-6 border-2 border-gray-400 group-hover:border-purple-600 rounded-sm" />
+                            <span className="text-xs font-bold text-gray-600">Feed (4:5)</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleClick('crop_9_16')}
+                            disabled={processing}
+                            className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-pink-400 transition-all flex flex-col items-center gap-2 group"
+                        >
+                            <div className="w-4 h-7 border-2 border-gray-400 group-hover:border-pink-600 rounded-sm" />
+                            <span className="text-xs font-bold text-gray-600">Stories (9:16)</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleClick('crop_16_9')}
+                            disabled={processing}
+                            className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-red-400 transition-all flex flex-col items-center gap-2 group"
+                        >
+                            <div className="w-7 h-4 border-2 border-gray-400 group-hover:border-red-600 rounded-sm" />
+                            <span className="text-xs font-bold text-gray-600">Capa (16:9)</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     );
