@@ -32,69 +32,86 @@ const ImageStudio = () => {
         fileInputRef.current.click();
     };
 
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            processImage(e.target.files[0]);
+    const handleFileChange = async (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setProcessing(true);
+            const files = Array.from(e.target.files);
+
+            let processedCount = 0;
+            // Process sequentially to not choke browser downloads
+            for (const file of files) {
+                await processImage(file);
+                processedCount++;
+                // Small delay to prevent browser blocking multiple downloads
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+
+            setProcessing(false);
+            window.dispatchEvent(new CustomEvent('app-toast', {
+                detail: { message: `${processedCount} Imagens Processadas com Sucesso!`, type: 'success' }
+            }));
+
+            // Reset input to allow selecting same files again if needed
+            e.target.value = '';
         }
     };
 
     const processImage = (file) => {
-        setProcessing(true);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
 
-                if (mode === 'crop') {
-                    // Auto-crop to square center
-                    const size = Math.min(img.width, img.height);
-                    canvas.width = size;
-                    canvas.height = size;
-                    const sx = (img.width - size) / 2;
-                    const sy = (img.height - size) / 2;
-                    ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
-                } else {
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0); // Draw original
+                    if (mode === 'crop') {
+                        // Auto-crop to square center
+                        const size = Math.min(img.width, img.height);
+                        canvas.width = size;
+                        canvas.height = size;
+                        const sx = (img.width - size) / 2;
+                        const sy = (img.height - size) / 2;
+                        ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+                    } else {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0); // Draw original
 
-                    if (mode === 'watermark') {
-                        const fontSize = Math.max(20, img.width * 0.05);
-                        ctx.font = `bold ${fontSize}px Arial`;
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
+                        if (mode === 'watermark') {
+                            const fontSize = Math.max(20, img.width * 0.05);
+                            ctx.font = `bold ${fontSize}px Arial`;
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
 
-                        // Diagonal watermark
-                        ctx.save();
-                        ctx.translate(canvas.width / 2, canvas.height / 2);
-                        ctx.rotate(-Math.PI / 4);
-                        ctx.fillText('PROTEGIDO', 0, 0);
-                        ctx.restore();
+                            // Diagonal watermark
+                            ctx.save();
+                            ctx.translate(canvas.width / 2, canvas.height / 2);
+                            ctx.rotate(-Math.PI / 4);
+                            ctx.fillText('PROTEGIDO', 0, 0);
+                            ctx.restore();
+                        }
                     }
-                }
 
-                // Force JPG conversion
-                const url = canvas.toDataURL('image/jpeg', 0.95);
+                    // Force JPG conversion
+                    const url = canvas.toDataURL('image/jpeg', 0.95);
 
-                // Trigger Download
-                const link = document.createElement('a');
-                link.download = `flow_${mode}_${Date.now()}.jpg`;
-                link.href = url;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                    // Trigger Download
+                    const link = document.createElement('a');
+                    const originalName = file.name.split('.')[0];
+                    link.download = `${originalName}_${mode}.jpg`;
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
-                setProcessing(false);
-                window.dispatchEvent(new CustomEvent('app-toast', {
-                    detail: { message: "Sucesso! Imagem baixada.", type: 'success' }
-                }));
+                    resolve();
+                };
+                img.src = e.target.result;
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
+        });
     };
 
     return (
@@ -104,6 +121,7 @@ const ImageStudio = () => {
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 accept="image/*"
+                multiple
                 className="hidden"
             />
 
@@ -111,7 +129,7 @@ const ImageStudio = () => {
                 {processing ? <Wand2 className="animate-spin text-indigo-500" size={48} /> : <ImageIcon size={48} className="text-gray-300" />}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Estúdio de Imagem</h2>
-            <p className="text-gray-500 mb-8 max-w-md">Converta WebP, corte ou proteja suas fotos em segundos.</p>
+            <p className="text-gray-500 mb-8 max-w-md">Converta WebP, corte ou proteja suas fotos em lote. Selecione várias de uma vez!</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
                 <button
@@ -125,7 +143,7 @@ const ImageStudio = () => {
                 <button
                     onClick={() => handleClick('crop')}
                     disabled={processing}
-                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group"
+                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 center group"
                 >
                     <Scissors className="text-gray-400 group-hover:text-purple-600" />
                     <span className="text-sm font-bold text-gray-600">Recorte 1:1</span>
