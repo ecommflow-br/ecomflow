@@ -329,24 +329,111 @@ const CompAnalysis = () => {
 };
 
 const VideoEditor = () => {
-    return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px] flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
-                <Film size={48} className="text-indigo-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Editor de Vídeo (Beta)</h2>
-            <p className="text-gray-500 mb-8 max-w-md">Para converter vídeos do Instagram, recomendamos usar serviços externos por enquanto.</p>
+    const [url, setUrl] = useState('');
+    const [loading, setLoading] = useState(false);
 
-            <a
-                href="https://snapinsta.app/"
-                target="_blank"
-                rel="noreferrer"
-                className="px-8 py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2"
-            >
-                <Download size={20} />
-                Acessar Downloader Externo
-            </a>
-            <p className="text-xs text-gray-400 mt-4 italic">Integração nativa em breve.</p>
+    const handleDownload = async () => {
+        if (!url) return alert('Cole o link do vídeo primeiro.');
+        setLoading(true);
+
+        try {
+            // Using Cobalt API (free, robust)
+            const response = await fetch('https://api.cobalt.tools/api/json', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    url: url,
+                    vCodec: 'h264',
+                    vQuality: '720',
+                    isAudioOnly: false,
+                    muteAudio: false
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'error') {
+                throw new Error(data.text || 'Erro desconhecido ao baixar.');
+            }
+
+            let downloadUrl = null;
+            if (data.status === 'stream' || data.status === 'redirect') {
+                downloadUrl = data.url;
+            } else if (data.status === 'picker') {
+                // If multiple, picking the first (usually best)
+                downloadUrl = data.picker[0].url;
+            }
+
+            if (downloadUrl) {
+                // Trigger download in new tab
+                window.open(downloadUrl, '_blank');
+
+                window.dispatchEvent(new CustomEvent('app-toast', {
+                    detail: { message: "Download iniciado!", type: 'success' }
+                }));
+                setUrl('');
+            } else {
+                throw new Error("Não foi possível extrair o link.");
+            }
+
+        } catch (error) {
+            console.error("Download Error", error);
+            let msg = error.message;
+            if (msg.includes('Failed to fetch')) msg = "Erro de conexão. Verifique o link ou a internet.";
+
+            window.dispatchEvent(new CustomEvent('app-toast', {
+                detail: { message: msg, type: 'error' }
+            }));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px]">
+            <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
+                    <Download size={40} className="text-indigo-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Downloader Universal</h2>
+                <p className="text-gray-500">Cole o link do Instagram, TikTok ou YouTube.</p>
+            </div>
+
+            <div className="max-w-xl mx-auto space-y-4">
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Cole o link aqui (ex: https://instagram.com/reel/...)"
+                        className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <Search size={20} />
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleDownload}
+                    disabled={loading}
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                    {loading ? <Wand2 className="animate-spin" /> : <Download />}
+                    {loading ? 'Processando Mídia...' : 'Baixar Agora'}
+                </button>
+
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                    <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-500 text-center flex items-center justify-center gap-2">
+                        <CheckCircle size={14} className="text-emerald-500" /> Sem marca d'água
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-500 text-center flex items-center justify-center gap-2">
+                        <CheckCircle size={14} className="text-emerald-500" /> Alta Qualidade
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
