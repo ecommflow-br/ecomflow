@@ -7,7 +7,7 @@ import FlowCanvas from './components/FlowCanvas';
 import SettingsModal from './components/SettingsModal';
 import Login from './components/Login';
 import ToolsHub from './components/ToolsHub';
-import { Calculator, Settings, Workflow, LogOut, Wrench } from 'lucide-react';
+import { Settings, Workflow, LogOut, Wrench } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary';
 import SecurityShield from './components/SecurityShield';
 
@@ -19,10 +19,7 @@ function Navigation({ user }) {
         signOut(auth);
     };
 
-    // Helper to trigger calculator addition in FlowCanvas via custom event
-    const triggerAddCalculator = () => {
-        window.dispatchEvent(new CustomEvent('add-calculator'));
-    };
+
 
     return (
         <>
@@ -44,15 +41,7 @@ function Navigation({ user }) {
                 </Link>
 
                 <div className="w-px h-6 bg-gray-200 mx-1" />
-                <button
-                    onClick={triggerAddCalculator}
-                    className="flex items-center gap-2 px-6 py-2 rounded-xl text-gray-600 hover:bg-black/5 transition-all"
-                    title="Adicionar Calculadora"
-                >
-                    <Calculator size={18} />
-                    <span className="font-medium text-sm text-nowrap">Nova Calculadora</span>
-                </button>
-                <div className="w-px h-6 bg-gray-200 mx-1" />
+
                 <button
                     onClick={() => setIsSettingsOpen(true)}
                     className="p-2 hover:bg-black/5 rounded-xl transition-all text-gray-400 hover:text-gray-600"
