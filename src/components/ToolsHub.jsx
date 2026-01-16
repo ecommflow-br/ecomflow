@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Image as ImageIcon, Search, Wand2, Upload, Scissors, FileCode, Film, Play, Download, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
 import { analyzeCompetitor } from '../utils/ai';
@@ -23,24 +23,118 @@ const ToolCard = ({ icon: Icon, title, desc, onClick, active = false }) => (
 );
 
 const ImageStudio = () => {
+    const fileInputRef = useRef(null);
+    const [mode, setMode] = useState('');
+    const [processing, setProcessing] = useState(false);
+
+    const handleClick = (selectedMode) => {
+        setMode(selectedMode);
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            processImage(e.target.files[0]);
+        }
+    };
+
+    const processImage = (file) => {
+        setProcessing(true);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                if (mode === 'crop') {
+                    // Auto-crop to square center
+                    const size = Math.min(img.width, img.height);
+                    canvas.width = size;
+                    canvas.height = size;
+                    const sx = (img.width - size) / 2;
+                    const sy = (img.height - size) / 2;
+                    ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size);
+                } else {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0); // Draw original
+
+                    if (mode === 'watermark') {
+                        const fontSize = Math.max(20, img.width * 0.05);
+                        ctx.font = `bold ${fontSize}px Arial`;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        // Diagonal watermark
+                        ctx.save();
+                        ctx.translate(canvas.width / 2, canvas.height / 2);
+                        ctx.rotate(-Math.PI / 4);
+                        ctx.fillText('PROTEGIDO', 0, 0);
+                        ctx.restore();
+                    }
+                }
+
+                // Force JPG conversion
+                const url = canvas.toDataURL('image/jpeg', 0.95);
+
+                // Trigger Download
+                const link = document.createElement('a');
+                link.download = `flow_${mode}_${Date.now()}.jpg`;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                setProcessing(false);
+                window.dispatchEvent(new CustomEvent('app-toast', {
+                    detail: { message: "Sucesso! Imagem baixada.", type: 'success' }
+                }));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
     return (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px] flex flex-col items-center justify-center text-center">
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+            />
+
             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                <ImageIcon size={48} className="text-gray-300" />
+                {processing ? <Wand2 className="animate-spin text-indigo-500" size={48} /> : <ImageIcon size={48} className="text-gray-300" />}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Estúdio de Imagem</h2>
-            <p className="text-gray-500 mb-8 max-w-md">Converta WebP para JPG, recorte para Stories ou aplique marca d'água automaticamente.</p>
+            <p className="text-gray-500 mb-8 max-w-md">Converta WebP, corte ou proteja suas fotos em segundos.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-                <button className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group">
+                <button
+                    onClick={() => handleClick('convert')}
+                    disabled={processing}
+                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group"
+                >
                     <FileCode className="text-gray-400 group-hover:text-indigo-600" />
                     <span className="text-sm font-bold text-gray-600">WebP → JPG</span>
                 </button>
-                <button className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group">
+                <button
+                    onClick={() => handleClick('crop')}
+                    disabled={processing}
+                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group"
+                >
                     <Scissors className="text-gray-400 group-hover:text-purple-600" />
                     <span className="text-sm font-bold text-gray-600">Recorte 1:1</span>
                 </button>
-                <button className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group">
+                <button
+                    onClick={() => handleClick('watermark')}
+                    disabled={processing}
+                    className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 group"
+                >
                     <Wand2 className="text-gray-400 group-hover:text-emerald-600" />
                     <span className="text-sm font-bold text-gray-600">Marca D'água</span>
                 </button>
@@ -142,24 +236,19 @@ const VideoEditor = () => {
             <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
                 <Film size={48} className="text-indigo-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Editor de Vídeo Rápido</h2>
-            <p className="text-gray-500 mb-8 max-w-md">Corte os melhores momentos do seu review para usar no TikTok.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Editor de Vídeo (Beta)</h2>
+            <p className="text-gray-500 mb-8 max-w-md">Para converter vídeos do Instagram, recomendamos usar serviços externos por enquanto.</p>
 
-            <div className="w-full max-w-2xl border-2 border-dashed border-gray-200 rounded-2xl h-64 flex flex-col items-center justify-center bg-gray-50 hover:bg-white hover:border-indigo-400 transition-all cursor-pointer group">
-                <Upload className="text-gray-300 group-hover:text-indigo-500 mb-4 transition-colors" size={48} />
-                <p className="font-bold text-gray-400 group-hover:text-gray-600">Arraste seu vídeo MP4 aqui</p>
-                <p className="text-xs text-gray-400 mt-2">Max 50MB</p>
-            </div>
-
-            <div className="flex gap-4 mt-8 opacity-50 pointer-events-none filter grayscale">
-                <button className="px-6 py-2 bg-gray-800 text-white rounded-lg font-bold flex items-center gap-2">
-                    <Scissors size={16} /> Cortar
-                </button>
-                <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold flex items-center gap-2">
-                    <Download size={16} /> Exportar
-                </button>
-            </div>
-            <p className="text-xs text-gray-400 mt-4 italic">Editor habilitando...</p>
+            <a
+                href="https://snapinsta.app/"
+                target="_blank"
+                rel="noreferrer"
+                className="px-8 py-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2"
+            >
+                <Download size={20} />
+                Acessar Downloader Externo
+            </a>
+            <p className="text-xs text-gray-400 mt-4 italic">Integração nativa em breve.</p>
         </div>
     );
 };
@@ -186,8 +275,8 @@ const ToolsHub = () => {
                     />
                     <ToolCard
                         icon={Film}
-                        title="Editor de Vídeo"
-                        desc="Corte vídeos para anúncios."
+                        title="Downloader Vídeo"
+                        desc="Instagram/TikTok."
                         active={activeTab === 'video'}
                         onClick={() => setActiveTab('video')}
                     />
