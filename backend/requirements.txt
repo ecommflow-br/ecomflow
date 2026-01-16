@@ -1,0 +1,4 @@
+flask
+flask-cors
+instaloader
+yt-dlp

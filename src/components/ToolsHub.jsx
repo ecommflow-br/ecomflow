@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon, Search, Wand2, Upload, Scissors, FileCode, Film, Play, Download, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
+import { Image as ImageIcon, Search, Wand2, Upload, Scissors, FileCode, Film, Play, Download, AlertTriangle, CheckCircle, Zap, Terminal } from 'lucide-react';
 import { analyzeCompetitor } from '../utils/ai';
 import heic2any from 'heic2any';
 
@@ -329,43 +329,120 @@ const CompAnalysis = () => {
 };
 
 const VideoEditor = () => {
+    const [url, setUrl] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [serverActive, setServerActive] = useState(true);
+
+    const checkServer = async () => {
+        try {
+            await fetch('http://localhost:5000/health');
+            setServerActive(true);
+            return true;
+        } catch (e) {
+            setServerActive(false);
+            return false;
+        }
+    };
+
+    const handleDownload = async () => {
+        if (!url) return alert('Cole o link do vídeo primeiro.');
+
+        const isLive = await checkServer();
+        if (!isLive) {
+            alert('⚠️ O SERVIDOR DE MÍDIA NÃO ESTÁ RODANDO!\n\nDê 2 cliques no arquivo "start_downloader_server.bat" na pasta do projeto para ativar o sistema.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:5000/download', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro desconhecido.');
+            }
+
+            if (data.status === 'success_url') {
+                window.open(data.access_url, '_blank');
+                window.dispatchEvent(new CustomEvent('app-toast', {
+                    detail: { message: "Download iniciado!", type: 'success' }
+                }));
+            } else {
+                window.dispatchEvent(new CustomEvent('app-toast', {
+                    detail: { message: data.message || "Sucesso! Verifique a pasta 'downloads'.", type: 'success' }
+                }));
+            }
+
+            setUrl('');
+
+        } catch (error) {
+            console.error("Download Error", error);
+            window.dispatchEvent(new CustomEvent('app-toast', {
+                detail: { message: `Erro: ${error.message}`, type: 'error' }
+            }));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px] flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
-                <Film size={48} className="text-indigo-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Downloader de Vídeo</h2>
-            <p className="text-gray-500 mb-8 max-w-md">
-                Devido a novas regras de segurança das redes sociais (API Token), o download direto está temporariamente indisponível.
-                Utilize as ferramentas oficiais abaixo (100% funcionais):
-            </p>
-
-            <div className="flex flex-col gap-4 w-full max-w-sm">
-                <a
-                    href="https://cobalt.tools/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
-                >
-                    <Download size={20} />
-                    Abrir Cobalt (Rápido & Limpo)
-                </a>
-
-                <a
-                    href="https://snapinsta.app/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-4 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-                >
-                    <Search size={20} />
-                    Opção 2: SnapInsta (Backup)
-                </a>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px]">
+            <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4 relative">
+                    <Film size={40} className="text-indigo-600" />
+                    {!serverActive && (
+                        <div className="absolute -top-2 -right-2 bg-rose-500 text-white p-1 rounded-full animate-bounce shadow-md" title="Servidor Parado">
+                            <AlertTriangle size={16} />
+                        </div>
+                    )}
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Downloader Nativo (Instaloader)</h2>
+                <p className="text-gray-500 text-sm">
+                    Requer servidor ativo. <span className="font-mono bg-gray-100 px-1 rounded text-xs">start_downloader_server.bat</span>
+                </p>
             </div>
 
-            <div className="mt-8 grid grid-cols-3 gap-2 text-xs text-gray-400">
-                <span className="bg-gray-50 px-2 py-1 rounded">Instagram</span>
-                <span className="bg-gray-50 px-2 py-1 rounded">TikTok</span>
-                <span className="bg-gray-50 px-2 py-1 rounded">YouTube</span>
+            <div className="max-w-xl mx-auto space-y-4">
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="Cole o link (Instagram, TikTok, YouTube)..."
+                        className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-gray-900 placeholder-gray-500"
+                        value={url}
+                        onChange={(e) => {
+                            setUrl(e.target.value);
+                            if (!serverActive) checkServer();
+                        }}
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <Search size={20} />
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleDownload}
+                    disabled={loading}
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1"
+                >
+                    {loading ? <Wand2 className="animate-spin" /> : <Download />}
+                    {loading ? 'Baixando no Servidor...' : 'Baixar Agora'}
+                </button>
+
+                {!serverActive && (
+                    <div className="bg-rose-50 border border-rose-100 p-3 rounded-lg flex items-center gap-3 text-rose-700 text-sm">
+                        <Terminal size={18} />
+                        <span><strong>Servidor Parado:</strong> Rode o arquivo .bat para ativar.</span>
+                    </div>
+                )}
             </div>
         </div>
     );
