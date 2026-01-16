@@ -58,6 +58,72 @@ export const analyzeCompetitor = async (text) => {
     throw new Error("Nenhuma API Key configurada. Vá em configurações.");
 };
 
+export const generateDescription = async (productRawText) => {
+    const prompt = `
+    Aja como um Copywriter Profissional de E-commerce.
+    Crie uma descrição de produto ALTAMENTE CONVERSIVA baseada neste input:
+    "${productRawText}"
+
+    Siga ESTRITAMENTE este template visual (use os emojis):
+
+    🏷️ TÍTULO (otimizado para busca)
+    [Título Magnético aqui]
+
+    📝 DESCRIÇÃO DO PRODUTO
+    [Parágrafo curto e envolvente focando em transformação/benefício]
+    
+    [Parágrafo secundário focando em ocasião de uso]
+
+    ✨ Destaques que fazem a diferença:
+    [Lista sem bullet point, frases curtas e diretas]
+
+    🧵 TECIDO
+    ✔ [Nome do tecido se houver]
+    ✔ [Benefício 1]
+    ✔ [Benefício 2]
+
+    📏 TABELA DE MEDIDAS (TAMANHO ÚNICO)
+    [Tabela simples se fizer sentido, ou apenas uma estimativa]
+
+    📌 Veste aproximadamente:
+    [Tamanhos P, M, G etc]
+
+    🛍️ COPY PERSUASIVA PARA MARKETPLACE
+    💚 [Headline Curta]
+    [Texto Vendedor]
+
+    ✔ [Benefício Rápido]
+    ✔ [Benefício Rápido]
+
+    ⚠️ Estoque limitado – peça muito procurada
+    👉 Garanta o seu agora antes que acabe!
+
+    Retorne APENAS o texto formatado acima, sem JSON.
+    `;
+
+    // Reuse existing keys flow
+    const openAiKey = localStorage.getItem('openai_api_key');
+    if (openAiKey) {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openAiKey}` },
+            body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: prompt }], temperature: 0.7 })
+        });
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    const geminiKey = localStorage.getItem('gemini_api_key');
+    if (geminiKey) {
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+    }
+
+    throw new Error("Configure sua API Key nas configurações.");
+};
+
 
 export const generateProductContent = async (input, fileData, style = 'marketplace') => {
     const openAiKey = localStorage.getItem("openai_api_key")?.trim();
