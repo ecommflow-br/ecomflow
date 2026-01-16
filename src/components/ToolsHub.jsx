@@ -406,9 +406,16 @@ const VideoEditor = () => {
                     )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">Downloader Nativo (Instaloader)</h2>
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-500 text-sm mb-2">
                     Requer servidor ativo. <span className="font-mono bg-gray-100 px-1 rounded text-xs">start_downloader_server.bat</span>
                 </p>
+                <a
+                    href="/server_pack.zip"
+                    download
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline flex items-center gap-1 mb-6"
+                >
+                    <Download size={14} /> Baixar Arquivos do Servidor (.zip)
+                </a>
             </div>
 
             <div className="max-w-xl mx-auto space-y-4">
