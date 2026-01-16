@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon, Search, Wand2, Upload, Scissors, FileCode, Film, Play, Download, AlertTriangle, CheckCircle, Zap, Terminal, Copy, ClipboardCheck, PenTool } from 'lucide-react';
-import { analyzeCompetitor, generateDescription } from '../utils/ai';
+import { Image as ImageIcon, Search, Wand2, Upload, Scissors, FileCode, Film, Play, Download, AlertTriangle, CheckCircle, Zap, Terminal } from 'lucide-react';
+import { analyzeCompetitor } from '../utils/ai';
 import heic2any from 'heic2any';
 
 const ToolCard = ({ icon: Icon, title, desc, onClick, active = false }) => (
@@ -328,88 +328,7 @@ const CompAnalysis = () => {
     );
 };
 
-const DescriptionGenerator = () => {
-    const [input, setInput] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState('');
-    const [copied, setCopied] = useState(false);
 
-    const handleGenerate = async () => {
-        if (!input) return alert("Descreva o produto primeiro.");
-        setLoading(true);
-        setCopied(false);
-        try {
-            const data = await generateDescription(input);
-            setResult(data);
-        } catch (error) {
-            alert("Erro: " + error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(result);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 min-h-[400px]">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <PenTool className="text-indigo-600" /> Gerador de Descrição
-            </h2>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Input Area */}
-                <div className="flex flex-col gap-4">
-                    <label className="text-sm font-bold text-gray-700">O que você está vendendo?</label>
-                    <p className="text-xs text-gray-400 mb-2">Ex: Conjunto feminino verão, tecido leve, short e blusa, cor verde, tamanhos P M G.</p>
-                    <textarea
-                        className="w-full h-64 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-sm text-gray-900 placeholder-gray-500"
-                        placeholder="Descreva seu produto aqui (tecido, cores, diferencial)..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                    />
-                    <button
-                        onClick={handleGenerate}
-                        disabled={loading}
-                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
-                    >
-                        {loading ? <Wand2 className="animate-spin" /> : <Zap />}
-                        {loading ? 'Criar Descrição Perfeita...' : 'Gerar Descrição'}
-                    </button>
-                </div>
-
-                {/* Output Area */}
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 h-full overflow-y-auto max-h-[600px] relative">
-                    {!result ? (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-400 text-center opacity-60">
-                            <PenTool size={48} className="mb-4" />
-                            <p>Sua descrição formatada aparecerá aqui.</p>
-                        </div>
-                    ) : (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="absolute top-4 right-4 print:hidden">
-                                <button
-                                    onClick={copyToClipboard}
-                                    className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold shadow-sm
-                                    ${copied ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 hover:text-indigo-600'}`}
-                                >
-                                    {copied ? <ClipboardCheck size={16} /> : <Copy size={16} />}
-                                    {copied ? 'Copiado!' : 'Copiar'}
-                                </button>
-                            </div>
-                            <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                                {result}
-                            </pre>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
 
 const VideoEditor = () => {
     return (
@@ -487,13 +406,7 @@ const ToolsHub = () => {
                         active={activeTab === 'spy'}
                         onClick={() => setActiveTab('spy')}
                     />
-                    <ToolCard
-                        icon={PenTool}
-                        title="Gerador de Descrição"
-                        desc="Crie anúncios perfeitos."
-                        active={activeTab === 'desc'}
-                        onClick={() => setActiveTab('desc')}
-                    />
+
                 </div>
 
                 {/* Main Content Area */}
@@ -507,7 +420,7 @@ const ToolsHub = () => {
                         {activeTab === 'studio' && <ImageStudio />}
                         {activeTab === 'video' && <VideoEditor />}
                         {activeTab === 'spy' && <CompAnalysis />}
-                        {activeTab === 'desc' && <DescriptionGenerator />}
+
                     </motion.div>
                 </div>
             </div>

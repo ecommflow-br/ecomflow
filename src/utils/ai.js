@@ -285,24 +285,53 @@ const getStylePrompt = (style, input) => {
             }
         }`;
     } else {
-        // Marketplace (Default)
+        // Marketplace (Default) - STRICT USER TEMPLATE
         return `${basePrompt}
-        ESTILO: MARKETPLACE (Shopee/Mercado Livre).
-        Foco: Leitura rápida, escaneabilidade, conversão direta.
-        - Use listas simples.
-        - Destaque "Características" e "Ficha Técnica" logo de cara.
-        - NÃO use parágrafos longos.
-        - NÃO use emojis excessivos. Use apenas bullets simples (-).
+        ESTILO: MARKETPLACE PADRÃO FLOW.
+        
+        Siga ESTRITAMENTE este template visual (use os emojis):
+
+        🏷️ TÍTULO (otimizado para busca)
+        [Título Magnético aqui]
+
+        📝 DESCRIÇÃO DO PRODUTO
+        [Parágrafo curto e envolvente focando em transformação/benefício]
+        
+        [Parágrafo secundário focando em ocasião de uso]
+
+        ✨ Destaques que fazem a diferença:
+        [Lista sem bullet point, frases curtas e diretas]
+
+        🧵 TECIDO
+        ✔ [Nome do tecido se houver]
+        ✔ [Benefício 1]
+        ✔ [Benefício 2]
+
+        📏 TABELA DE MEDIDAS (TAMANHO ÚNICO)
+        [Tabela simples se fizer sentido, ou apenas uma estimativa]
+
+        📌 Veste aproximadamente:
+        [Tamanhos P, M, G etc]
+
+        🛍️ COPY PERSUASIVA PARA MARKETPLACE
+        💚 [Headline Curta]
+        [Texto Vendedor]
+
+        ✔ [Benefício Rápido]
+        ✔ [Benefício Rápido]
+
+        ⚠️ Estoque limitado – peça muito procurada
+        👉 Garanta o seu agora antes que acabe!
         
         Retorne um JSON (PORTUGUÊS):
         {
-            "title": "Título SEO Otimizado",
-            "description": "Descrição em tópicos/bullets.",
-            "sizeTable": "Tabela clara",
+            "title": "Título gerado no template",
+            "description": "O texto completo seguindo EXATAMENTE a estrutura visual acima (incluindo os emojis)",
+            "sizeTable": "Tabela formatada visualmente",
             "extraDetails": {
-                "observations": "Dicas rápidas",
-                "packaging": "O que vem na caixa",
-                "shipping": "Envio"
+                "observations": "Tecido e Detalhes",
+                "packaging": "Conteúdo",
+                "shipping": "Envio Imediato"
             }
         }`;
     }
