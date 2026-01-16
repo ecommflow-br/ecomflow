@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Image as ImageIcon, Search, Wand2, Upload, Scissors, FileCode, Film, Play, Download, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
 import { analyzeCompetitor } from '../utils/ai';
+import heic2any from 'heic2any';
 
 const ToolCard = ({ icon: Icon, title, desc, onClick, active = false }) => (
     <motion.button
@@ -38,26 +39,49 @@ const ImageStudio = () => {
             const files = Array.from(e.target.files);
 
             let processedCount = 0;
-            // Process sequentially to not choke browser downloads
+            // Process sequentially
             for (const file of files) {
-                await processImage(file);
-                processedCount++;
-                // Small delay to prevent browser blocking multiple downloads
+                try {
+                    await processImage(file);
+                    processedCount++;
+                } catch (err) {
+                    console.error("Skipped file", file.name, err);
+                }
                 await new Promise(resolve => setTimeout(resolve, 800));
             }
 
             setProcessing(false);
             window.dispatchEvent(new CustomEvent('app-toast', {
-                detail: { message: `${processedCount} Imagens Processadas com Sucesso!`, type: 'success' }
+                detail: { message: `${processedCount} Imagens Processadas!`, type: 'success' }
             }));
 
-            // Reset input to allow selecting same files again if needed
             e.target.value = '';
         }
     };
 
-    const processImage = (file) => {
-        return new Promise((resolve) => {
+    const processImage = async (file) => {
+        let fileToProcess = file;
+
+        // HEIC Conversion
+        if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
+            try {
+                const convertedBlob = await heic2any({
+                    blob: file,
+                    toType: "image/jpeg",
+                    quality: 0.9
+                });
+                // heic2any can return an array if multiple images are in the HEIC, but we usually just want the first one or the single blob
+                fileToProcess = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+            } catch (e) {
+                console.error("HEIC Conversion failed", e);
+                window.dispatchEvent(new CustomEvent('app-toast', {
+                    detail: { message: `Erro ao converter HEIC: ${file.name}`, type: 'error' }
+                }));
+                throw e; // Stop processing this file
+            }
+        }
+
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
@@ -74,15 +98,12 @@ const ImageStudio = () => {
                         const imgRatio = img.width / img.height;
                         let drawW, drawH, sx, sy;
 
-                        // Calculate Optimal Center Crop
                         if (imgRatio > targetRatio) {
-                            // Image is wider than target -> constraint by height
                             drawH = img.height;
                             drawW = img.height * targetRatio;
                             sx = (img.width - drawW) / 2;
                             sy = 0;
                         } else {
-                            // Image is taller than target -> constraint by width
                             drawW = img.width;
                             drawH = img.width / targetRatio;
                             sx = 0;
@@ -95,7 +116,7 @@ const ImageStudio = () => {
                     } else {
                         canvas.width = img.width;
                         canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0); // Draw original
+                        ctx.drawImage(img, 0, 0);
 
                         if (mode === 'watermark') {
                             const fontSize = Math.max(20, img.width * 0.05);
@@ -104,7 +125,6 @@ const ImageStudio = () => {
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
 
-                            // Diagonal watermark
                             ctx.save();
                             ctx.translate(canvas.width / 2, canvas.height / 2);
                             ctx.rotate(-Math.PI / 4);
@@ -113,10 +133,7 @@ const ImageStudio = () => {
                         }
                     }
 
-                    // Force JPG conversion
                     const url = canvas.toDataURL('image/jpeg', 0.95);
-
-                    // Trigger Download
                     const link = document.createElement('a');
                     const originalName = file.name.split('.')[0];
                     link.download = `${originalName}_${mode}.jpg`;
@@ -127,9 +144,11 @@ const ImageStudio = () => {
 
                     resolve();
                 };
+                img.onerror = reject;
                 img.src = e.target.result;
             };
-            reader.readAsDataURL(file);
+            reader.onerror = reject;
+            reader.readAsDataURL(fileToProcess);
         });
     };
 
@@ -139,7 +158,7 @@ const ImageStudio = () => {
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/*"
+                accept="image/*,.heic"
                 multiple
                 className="hidden"
             />
@@ -149,7 +168,7 @@ const ImageStudio = () => {
             </div>
 
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Estúdio de Imagem</h2>
-            <p className="text-gray-500 mb-8 max-w-md">Converta, trate e recorte suas fotos em lote.</p>
+            <p className="text-gray-500 mb-8 max-w-md">Suporte total para JPG, PNG, WEBP e **HEIC (iPhone)**. Selecione suas fotos.</p>
 
             <div className="w-full max-w-3xl space-y-6">
 
@@ -163,7 +182,7 @@ const ImageStudio = () => {
                             className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-indigo-400 transition-all flex flex-col items-center gap-2 group"
                         >
                             <FileCode className="text-gray-400 group-hover:text-indigo-600" />
-                            <span className="text-sm font-bold text-gray-600">WebP → JPG</span>
+                            <span className="text-sm font-bold text-gray-600">WebP / HEIC → JPG</span>
                         </button>
                         <button
                             onClick={() => handleClick('watermark')}
