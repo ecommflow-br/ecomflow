@@ -70,14 +70,13 @@ const ImageStudio = () => {
                     toType: "image/jpeg",
                     quality: 0.9
                 });
-                // heic2any can return an array if multiple images are in the HEIC, but we usually just want the first one or the single blob
                 fileToProcess = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
             } catch (e) {
                 console.error("HEIC Conversion failed", e);
                 window.dispatchEvent(new CustomEvent('app-toast', {
                     detail: { message: `Erro ao converter HEIC: ${file.name}`, type: 'error' }
                 }));
-                throw e; // Stop processing this file
+                throw e;
             }
         }
 
@@ -270,7 +269,7 @@ const CompAnalysis = () => {
                 <div className="flex flex-col gap-4">
                     <label className="text-sm font-bold text-gray-700">Cole o Anúncio do Concorrente (Título e Descrição):</label>
                     <textarea
-                        className="w-full h-64 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-sm"
+                        className="w-full h-64 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none resize-none text-sm text-gray-900 placeholder-gray-500"
                         placeholder="Cole aqui o texto do anúncio que você quer superar..."
                         value={text}
                         onChange={(e) => setText(e.target.value)}
@@ -300,7 +299,7 @@ const CompAnalysis = () => {
                                 </h3>
                                 <ul className="space-y-2">
                                     {result.weaknesses?.map((w, i) => (
-                                        <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                                        <li key={i} className="text-sm text-gray-800 flex items-start gap-2">
                                             <span className="text-rose-400 mt-1">•</span> {w}
                                         </li>
                                     ))}
@@ -311,7 +310,7 @@ const CompAnalysis = () => {
                                 <h3 className="text-emerald-700 font-bold flex items-start gap-2 mb-3">
                                     <CheckCircle size={18} /> Oportunidade de Ouro
                                 </h3>
-                                <p className="text-sm text-gray-700 italic">"{result.opportunity}"</p>
+                                <p className="text-sm text-gray-800 italic">"{result.opportunity}"</p>
                             </div>
 
                             <div className="bg-white border border-gray-200 p-4 rounded-xl">
