@@ -329,111 +329,43 @@ const CompAnalysis = () => {
 };
 
 const VideoEditor = () => {
-    const [url, setUrl] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleDownload = async () => {
-        if (!url) return alert('Cole o link do vídeo primeiro.');
-        setLoading(true);
-
-        try {
-            // Using Cobalt API (free, robust) - simplified body for max compatibility
-            const response = await fetch('https://api.cobalt.tools/api/json', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    url: url
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.status === 'error') {
-                throw new Error(data.text || 'Erro desconhecido ao baixar.');
-            }
-
-            let downloadUrl = null;
-            if (data.status === 'stream' || data.status === 'redirect') {
-                downloadUrl = data.url;
-            } else if (data.status === 'picker') {
-                downloadUrl = data.picker[0].url;
-            }
-
-            if (downloadUrl) {
-                // Robust download trigger
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => document.body.removeChild(link), 100);
-
-                window.dispatchEvent(new CustomEvent('app-toast', {
-                    detail: { message: "Download iniciado!", type: 'success' }
-                }));
-                setUrl('');
-            } else {
-                throw new Error("Não foi possível extrair o link.");
-            }
-
-        } catch (error) {
-            console.error("Download Error", error);
-            let msg = error.message;
-            if (msg.includes('Failed to fetch')) msg = "Erro de conexão. Verifique o link e sua internet.";
-
-            window.dispatchEvent(new CustomEvent('app-toast', {
-                detail: { message: msg, type: 'error' }
-            }));
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px]">
-            <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
-                    <Download size={40} className="text-indigo-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900">Downloader Universal</h2>
-                <p className="text-gray-500">Cole o link do Instagram, TikTok ou YouTube.</p>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 min-h-[400px] flex flex-col items-center text-center">
+            <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6">
+                <Film size={48} className="text-indigo-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Downloader de Vídeo</h2>
+            <p className="text-gray-500 mb-8 max-w-md">
+                Devido a novas regras de segurança das redes sociais (API Token), o download direto está temporariamente indisponível.
+                Utilize as ferramentas oficiais abaixo (100% funcionais):
+            </p>
+
+            <div className="flex flex-col gap-4 w-full max-w-sm">
+                <a
+                    href="https://cobalt.tools/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2"
+                >
+                    <Download size={20} />
+                    Abrir Cobalt (Rápido & Limpo)
+                </a>
+
+                <a
+                    href="https://snapinsta.app/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-4 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                >
+                    <Search size={20} />
+                    Opção 2: SnapInsta (Backup)
+                </a>
             </div>
 
-            <div className="max-w-xl mx-auto space-y-4">
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="Cole o link aqui (ex: https://instagram.com/reel/...)"
-                        className="w-full p-4 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-gray-900 placeholder-gray-500"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                    />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                        <Search size={20} />
-                    </div>
-                </div>
-
-                <button
-                    onClick={handleDownload}
-                    disabled={loading}
-                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                    {loading ? <Wand2 className="animate-spin" /> : <Download />}
-                    {loading ? 'Processando Mídia...' : 'Baixar Agora'}
-                </button>
-
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                    <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-500 text-center flex items-center justify-center gap-2">
-                        <CheckCircle size={14} className="text-emerald-500" /> Sem marca d'água
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-500 text-center flex items-center justify-center gap-2">
-                        <CheckCircle size={14} className="text-emerald-500" /> Alta Qualidade
-                    </div>
-                </div>
+            <div className="mt-8 grid grid-cols-3 gap-2 text-xs text-gray-400">
+                <span className="bg-gray-50 px-2 py-1 rounded">Instagram</span>
+                <span className="bg-gray-50 px-2 py-1 rounded">TikTok</span>
+                <span className="bg-gray-50 px-2 py-1 rounded">YouTube</span>
             </div>
         </div>
     );
